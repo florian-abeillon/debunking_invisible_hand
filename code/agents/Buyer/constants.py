@@ -1,0 +1,10 @@
+""" agents/Buyer/constants """
+
+# Buyers' parameters
+BUDGET = 70
+
+MEMORY_BUYER = 0.5
+RISK_AVERSITY_BUYER = 0.2
+CURIOSITY_BUYER = 0.3
+MYOPIA_FACTOR = 0.7
+PENALTY_FACTOR = 0.5   # 1/PRICE_PROD
