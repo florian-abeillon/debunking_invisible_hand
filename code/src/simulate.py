@@ -8,22 +8,16 @@ from agents import Buyer, Seller
 from src.constants import NB_BUYERS, NB_SELLERS
 
 
-def get_new_agents(nb_sellers: int = NB_SELLERS, nb_buyers: int = NB_BUYERS) -> Tuple[List[Seller], List[Buyer]]:
+def get_new_agents(nb_sellers: int = NB_SELLERS, nb_buyers: int = NB_BUYERS, Verbose: bool = False) -> Tuple[List[Seller], List[Buyer]]:
     """ Creates lists of sellers/buyers """
-    sellers = [ 
-        Seller(
-            name=i,
-            price_prod=30
-        )
-        for i in range(nb_sellers) 
-    ]
-    buyers = [ 
-        Buyer(
-            name=i,
-            budget=70
-        )
-        for i in range(nb_buyers) 
-    ]
+    if Verbose:
+        print(f"Creating {nb_sellers} sellers..")
+    sellers = [ Seller(name=i) for i in range(nb_sellers) ]
+    
+    if Verbose:
+        print(f"Creating {nb_buyers} buyers..")
+    buyers = [ Buyer(name=i) for i in range(nb_buyers) ]
+
     return sellers, buyers
 
 
@@ -38,7 +32,6 @@ def play_round(sellers: List[Seller], buyers: List[Buyer], Verbose: bool = False
             print(f"Buyer {buyer.name}: budget_left={buyer.budget_left}")
         
         # Get a random number of sellers to present to the buyer
-        # TODO: Try out other strategies
         k = rd.randint(0, NB_SELLERS)
         idx_sellers = rd.sample(range(NB_SELLERS), k=k)
         

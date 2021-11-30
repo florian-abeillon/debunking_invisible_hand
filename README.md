@@ -41,7 +41,7 @@ The main idea is to simulate independent selling/buying agents, and observe the 
 (Cellular Automata, Agent-Based Model, Continuous Modeling...) (If you are not sure here: 1. Consult your colleagues, 2. ask the teachers, 3. remember that you can change it afterwards)
 
 ## Acknowledgments
-Thanks to [Thomas Asikis](https://github.com/asikist-ethz) for its guidance throughout the project, and for his repo [market_rl](https://github.com/asikist-ethz/market_rl) which we drew inspiration from.
+Thanks to [Thomas Asikis](https://github.com/asikist-ethz) for its guidance throughout the project.
 
 
 ## Other

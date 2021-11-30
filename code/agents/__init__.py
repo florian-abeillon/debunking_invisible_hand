@@ -1,2 +1,2 @@
-from Buyer.Buyer import Buyer
-from Seller.Seller import Seller
+from agents.Buyer.Buyer import Buyer
+from agents.Seller.Seller import Seller

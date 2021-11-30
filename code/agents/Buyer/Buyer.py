@@ -3,17 +3,20 @@
 import math
 import random as rd
 from typing import List, Tuple, Union
-from uuid import uuid4
 
 import pandas as pd
-import seaborn as sns
+from agents.Agent import Agent
 from agents.Buyer.constants import (BUDGET, CURIOSITY_BUYER, MEMORY_BUYER,
                                     MYOPIA_FACTOR, PENALTY_FACTOR,
                                     RISK_AVERSITY_BUYER)
-from src.constants import PRICE_MAX, PRICE_MIN, QTY_MAX, QTY_MIN
+from agents.Buyer.utils import get_q_table, get_q_table_size
+from src.constants import BUDGET_MAX, BUDGET_MIN, PRICE_MAX, PRICE_MIN, QTY_MAX
+
+Q_TABLE = get_q_table(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
+Q_TABLE_SIZE = get_q_table_size(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
 
 
-class Buyer:
+class Buyer(Agent):
     """
         Buying agent class
         * name: Unique identifier 
@@ -37,42 +40,33 @@ class Buyer:
                  penalty: float = PENALTY_FACTOR,
                  stochastic: bool = False,
                  name: Union[str, int] = ""):
+
+        super().__init__(alpha=alpha, epsilon=epsilon, name=name)
         
-        self.name: str = str(name) if name != "" else str(uuid4())
-        self.alpha: float = alpha
         self.gamma: float = gamma
-        self.epsilon: float = epsilon
         self.myopia: float = myopia
         self.penalty: float = penalty
         
-        assert PRICE_MIN <= budget <= PRICE_MAX, f"Budget budget={budget} is not within the price bounds PRICE_MIN={PRICE_MIN} and PRICE_MAX={PRICE_MAX}"
+        assert BUDGET_MIN <= budget <= BUDGET_MAX, f"Budget budget={budget} is not within the price bounds PRICE_MIN={BUDGET_MIN} and BUDGET_MAX={BUDGET_MAX}"
         self.budget: int = budget
         
         # If stochastic==True, use a gaussian distribution to get budget
-        # TODO: Try out other distributions
         if stochastic:
-            std_dev = (PRICE_MAX - PRICE_MIN) / 100
+            std_dev = (BUDGET_MAX - BUDGET_MIN) / 100
             budget = rd.gauss(budget, std_dev)
-            self.budget = min(PRICE_MAX, max(PRICE_MIN, math.floor(budget)))
+            self.budget = min(BUDGET_MAX, max(BUDGET_MIN, math.floor(budget)))
             
         self.budget_left = self.budget
         
-        # Initialize Q-table with zeros
-        ## Indexes are pairs (budget_left, price)
-        index_list = [ (i, j) for i in range(0, PRICE_MAX+1) for j in range(PRICE_MIN, PRICE_MAX+1) ]
-        self.q_table: pd.DataFrame = pd.DataFrame(
-            index=pd.MultiIndex.from_tuples(index_list), 
-            columns=range(QTY_MIN, QTY_MAX+1), 
-            dtype=float
-        ).fillna(0.)
+        # Initialize Q-table
+        self.q_table: pd.DataFrame = Q_TABLE
+        self.to_explore: int = Q_TABLE_SIZE
+        self.to_explore_yet: int = Q_TABLE_SIZE
             
         # history is a list of lists (one for every round) of triples ( budget_before, price, quantity )
         self.history: List[List[Tuple[int, int, int]]] = [[]]
             
             
-            
-    def get_q_table(self) -> pd.DataFrame:
-        return self.q_table
             
     def get_history(self, non_zero: bool = False) -> list:
         # To return history of actual purchases (when at least one good has been purchased)
@@ -84,34 +78,16 @@ class Buyer:
                 ]
                 for round_hist in self.history
             ]
-        return self.history
+        return super().get_history()
     
     
     
     def plot_history(self) -> None:
         """ Displays purchases history (quantity purchased over price) """
         df_history = pd.DataFrame([
-            ( price, qty ) for _, price, qty in self.history
+            ( price, qty ) for _, price, qty in self.get_history()
         ])
-        df_history.plot(
-            0, 
-            1, 
-            kind='scatter', 
-            xlim=[ PRICE_MIN, PRICE_MAX ],
-            xlabel="Price",
-            ylabel="Number of purchases",
-            c=df_history.index, 
-            colormap='jet',
-            colorbar=True
-        )
-        
-    def plot_q_table(self) -> None:
-        """ Displays heatmap of learnt Q-table """
-        sns.heatmap(
-            self.q_table, 
-            cmap='jet_r', 
-            cbar=True
-        )
+        super().get_history(df_history, "Price", "Number of purchases")
     
     
     
@@ -121,10 +97,9 @@ class Buyer:
         # Get quantity to buy with e-greedy policy, given that
         # * quantity shall be lower than qty_left (Buyer cannot buy more goods than available)
         # * quantity * price shall be lower than budget (Buyer cannot buy goods for more than its budget)
-        # TODO: Try out other exploration/exploitation policies
         
         qty_max = min(qty_left, self.budget_left // price)
-        if rd.random() < self.epsilon:
+        if rd.random() < self.epsilon_updated():
             # Exploration: Try out a random quantity
             qty_to_buy = rd.choice(list(self.q_table.columns[:qty_max+1]))
         else:
@@ -138,15 +113,17 @@ class Buyer:
             
     def learn(self) -> None:
         """ Update Q-table ("learn") and reinitialize params """
+
+        last_round_hist = self.history[-1]
         
         # Compute number of goods purchased overall this round
-        nb_goods_purchased_after = sum([ qty for _, _, qty in self.history[-1] ])
-        nb_purchases = len(self.history[-1])
+        nb_goods_purchased_after = sum([ qty for _, _, qty in last_round_hist ])
+        nb_purchases = len(last_round_hist)
         
         # Compute penalty for budget not spent
         penalty = self.penalty * self.budget_left
         
-        for i, purchase in enumerate(self.history[-1]):
+        for i, purchase in enumerate(last_round_hist):
             budget, price, qty = purchase
             
             # Compute reward (nb of goods purchased)
@@ -156,12 +133,8 @@ class Buyer:
             reward = qty + myopia_factor * (nb_goods_purchased_after - penalty)
             
             # Get max potential Q-value
-            if i < nb_purchases - 1:
-                budget_left, _, _ = self.history[-1][i+1]
-                # TODO: remove price
-                potential_reward = self.q_table.loc[budget_left].max().max()
-            else:
-                potential_reward = 0
+            budget_left = last_round_hist[i+1][0] if i < nb_purchases - 1 else self.budget_left
+            potential_reward = self.q_table.loc[budget_left].max().max()
         
             # Update Q-table
             self.q_table.loc[(budget, price), qty] *= 1 - self.alpha
