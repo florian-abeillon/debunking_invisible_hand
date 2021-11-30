@@ -4,10 +4,7 @@ from typing import Union
 from uuid import uuid4
 
 import pandas as pd
-import seaborn as sns
-from src.constants import PRICE_MAX, PRICE_MIN
-
-from agents.Buyer.constants import CURIOSITY_BUYER, MEMORY_BUYER
+from src.utils import plot_q_table, update_epsilon
 
 
 class Agent:
@@ -17,14 +14,14 @@ class Agent:
         * alpha: Q-learning alpha factor, representing agent's memory
         * epsilon: e-greedy policy e factor, representing agent's curiosity
         * q_table: Q-learning table
-        * to_explore: Total number of cells to explore in q_table
-        * to_explore_yet: (Estimation of the) number of cells yet to explore
+        * size_unk: Total number of cells to explore in q_table
+        * proportion_unk: (Estimation of the) proportions of cells yet to explore
         * history: List of all purchases
     """
     
     def __init__(self,
-                 alpha: float = MEMORY_BUYER, 
-                 epsilon: float = CURIOSITY_BUYER,
+                 alpha: float, 
+                 epsilon: float,
                  name: Union[str, int] = ""):
         
         self.name: str = str(name) if name != "" else str(uuid4())
@@ -33,8 +30,8 @@ class Agent:
         
         # Q-learning table
         self.q_table: pd.DataFrame = None       # To be set in child class
-        self.to_explore: int = None             # To be set in child class
-        self.to_explore_yet: int = None             # To be set in child class
+        self.size_unk: int = None               # To be set in child class
+        self.proportion_unk: int = 1
             
         # History of all Agent's transactions
         self.history: list = None               # To be set in child class
@@ -44,43 +41,26 @@ class Agent:
     def get_q_table(self) -> pd.DataFrame:
         return self.q_table
             
+    def get_size_unk(self) -> int:
+        return self.size_unk
+            
     def get_history(self) -> list:
         return self.history
     
     
-    
-    @staticmethod
-    def plot_history(df_history: pd.DataFrame, x_label: str, y_label: str) -> None:
-        """ Displays purchases history (quantity purchased over price) """
-        df_history.plot(
-            0, 
-            1, 
-            kind='scatter', 
-            xlim=[ PRICE_MIN, PRICE_MAX ],
-            xlabel=x_label,
-            ylabel=y_label,
-            c=df_history.index, 
-            colormap='jet',
-            colorbar=True
-        )
         
     def plot_q_table(self) -> None:
         """ Displays heatmap of learnt Q-table """
-        sns.heatmap(
-            self.q_table, 
-            cmap='jet_r', 
-            cbar=True
-        )
+        plot_q_table(self.q_table)
         
 
 
     def epsilon_updated(self) -> float:
         """ Returns epsilon factor dynamically adjusted """
         # Compute epsilon, given the current state of exploration of the Q-table
-        frac_to_explore = self.to_explore_yet / self.to_explore
-        epsilon = (1 - self.epsilon) * frac_to_explore + self.epsilon
+        epsilon = update_epsilon(self.epsilon, self.proportion_unk)
         # Update the estimation of the number of cells yet to explore
-        self.to_explore_yet -= epsilon
+        self.proportion_unk -= epsilon / self.size_unk
         return epsilon 
 
 

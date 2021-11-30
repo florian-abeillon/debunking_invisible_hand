@@ -5,12 +5,13 @@ import random as rd
 from typing import List, Tuple, Union
 
 import pandas as pd
+import seaborn as sns
 from agents.Agent import Agent
-from agents.Buyer.constants import (BUDGET, CURIOSITY_BUYER, MEMORY_BUYER,
-                                    MYOPIA_FACTOR, PENALTY_FACTOR,
-                                    RISK_AVERSITY_BUYER)
+from agents.Buyer.constants import (BUDGET, CURIOSITY, MEMORY, MYOPIA, PENALTY,
+                                    RISK_AVERSITY)
 from agents.Buyer.utils import get_q_table, get_q_table_size
-from src.constants import BUDGET_MAX, BUDGET_MIN, PRICE_MAX, PRICE_MIN, QTY_MAX
+from agents.constants import (BUDGET_MAX, BUDGET_MIN, PRICE_MAX, PRICE_MIN,
+                              QTY_MAX)
 
 Q_TABLE = get_q_table(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
@@ -28,20 +29,22 @@ class Buyer(Agent):
         * budget: Initial budget when starting round
         * budget_left: Budget left, to be used
         * q_table: Q-learning table
+        * size_unk: Total number of cells to explore in q_table
+        * proportion_unk: (Estimation of the) proportions of cells yet to explore
         * history: List of all purchases
     """
     
     def __init__(self,  
                  budget: int = BUDGET, 
-                 alpha: float = MEMORY_BUYER, 
-                 gamma: float = RISK_AVERSITY_BUYER, 
-                 epsilon: float = CURIOSITY_BUYER,
-                 myopia: float = MYOPIA_FACTOR,
-                 penalty: float = PENALTY_FACTOR,
+                 alpha: float = MEMORY, 
+                 gamma: float = RISK_AVERSITY, 
+                 epsilon: float = CURIOSITY,
+                 myopia: float = MYOPIA,
+                 penalty: float = PENALTY,
                  stochastic: bool = False,
                  name: Union[str, int] = ""):
 
-        super().__init__(alpha=alpha, epsilon=epsilon, name=name)
+        super().__init__(alpha, epsilon, name=name)
         
         self.gamma: float = gamma
         self.myopia: float = myopia
@@ -60,8 +63,7 @@ class Buyer(Agent):
         
         # Initialize Q-table
         self.q_table: pd.DataFrame = Q_TABLE
-        self.to_explore: int = Q_TABLE_SIZE
-        self.to_explore_yet: int = Q_TABLE_SIZE
+        self.size_unk: int = Q_TABLE_SIZE
             
         # history is a list of lists (one for every round) of triples ( budget_before, price, quantity )
         self.history: List[List[Tuple[int, int, int]]] = [[]]
@@ -82,12 +84,33 @@ class Buyer(Agent):
     
     
     
+    # TODO
     def plot_history(self) -> None:
         """ Displays purchases history (quantity purchased over price) """
         df_history = pd.DataFrame([
-            ( price, qty ) for _, price, qty in self.get_history()
+            [ ( price, qty ) for _, price, qty in round_hist ]
+            for round_hist in self.get_history()
         ])
-        super().get_history(df_history, "Price", "Number of purchases")
+        df_history.plot(
+            0, 
+            1, 
+            kind='scatter', 
+            xlim=[ PRICE_MIN, PRICE_MAX ],
+            xlabel="Price",
+            ylabel="Number of purchases",
+            c=df_history.index, 
+            colormap='jet',
+            colorbar=True
+        )
+        
+    # TODO
+    def plot_q_table(self) -> None:
+        """ Displays heatmap of learnt Q-table, for each budget """
+        sns.heatmap(
+            self.q_table.sort_index(ascending=False), 
+            cmap='jet_r', 
+            cbar=True
+        )
     
     
     
@@ -128,9 +151,9 @@ class Buyer(Agent):
             
             # Compute reward (nb of goods purchased)
             # Weight more nb of goods purchased 
-            myopia_factor = self.myopia**(nb_purchases - i)
+            myopia = self.myopia**(nb_purchases - i)
             nb_goods_purchased_after -= qty
-            reward = qty + myopia_factor * (nb_goods_purchased_after - penalty)
+            reward = qty + myopia * (nb_goods_purchased_after - penalty)
             
             # Get max potential Q-value
             budget_left = last_round_hist[i+1][0] if i < nb_purchases - 1 else self.budget_left
@@ -138,7 +161,9 @@ class Buyer(Agent):
         
             # Update Q-table
             self.q_table.loc[(budget, price), qty] *= 1 - self.alpha
-            self.q_table.loc[(budget, price), qty] += self.alpha * (reward + self.gamma * potential_reward)
+            self.q_table.loc[(budget, price), qty] += self.alpha * (reward + self.gamma * potential_reward)     # TODO: Incentivize more to buy
         
+        # Give buyers their budget for next round
+        self.budget_left = self.budget
         # Prepare a new list for next round
         self.history.append([])

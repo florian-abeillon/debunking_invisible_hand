@@ -1,8 +1,8 @@
 """ agents/Seller/constants """
 
-# Sellers' parameters
+# Sellers' capacity
 PRICE_PROD = 30
 
-MEMORY_SELLER = 0.5
-RISK_AVERSITY_SELLER = 0.2
-CURIOSITY_SELLER = 0.3
+# Sellers' behaviour
+MEMORY = 0.5
+CURIOSITY = 0.3

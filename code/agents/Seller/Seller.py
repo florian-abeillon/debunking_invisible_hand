@@ -6,9 +6,9 @@ from typing import List, Tuple, Union
 
 import pandas as pd
 from agents.Agent import Agent
-from agents.Seller.constants import CURIOSITY_SELLER, MEMORY_SELLER, PRICE_PROD
+from agents.constants import PRICE_MAX, PRICE_MIN, QTY_MAX, QTY_MIN
+from agents.Seller.constants import CURIOSITY, MEMORY, PRICE_PROD
 from agents.Seller.utils import get_q_table, get_q_table_size
-from src.constants import PRICE_MAX, PRICE_MIN, QTY_MAX, QTY_MIN
 
 Q_TABLE = get_q_table(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
@@ -25,17 +25,19 @@ class Seller(Agent):
         * price_sell: Price at which the agent will try to sell its goods (to be learned as we go along)
         * qty_left: Quantity of goods that have not been sold (yet)
         * q_table: Q-learning table
+        * size_unk: Total number of cells to explore in q_table
+        * proportion_unk: (Estimation of the) proportions of cells yet to explore
         * history: List of all sales
     """
     
     def __init__(self,  
                  price_prod: int = PRICE_PROD, 
-                 alpha: float = MEMORY_SELLER, 
-                 epsilon: float = CURIOSITY_SELLER,
+                 alpha: float = MEMORY, 
+                 epsilon: float = CURIOSITY,
                  stochastic: bool = False,
                  name: Union[str, int] = ""):
 
-        super().__init__(alpha=alpha, epsilon=epsilon, name=name)
+        super().__init__(alpha, epsilon, name=name)
         
         assert PRICE_MIN <= price_prod <= PRICE_MAX, f"Production price price_prod={price_prod} is not within the price bounds PRICE_MIN={PRICE_MIN} and PRICE_MAX={PRICE_MAX}"
         self.price_prod: int = price_prod
@@ -47,18 +49,17 @@ class Seller(Agent):
             self.price_prod = min(PRICE_MAX, max(PRICE_MIN, math.floor(price_prod)))
             
         # Initialize randomly first selling price
-        self.qty_prod: int = rd.randint(0, QTY_MAX)
+        self.qty_prod: int = rd.randint(QTY_MIN, QTY_MAX)
         self.price_sell: int = rd.randint(self.price_prod, PRICE_MAX)
         
         self.qty_left: int = self.qty_prod
         
         # Q-learning table
         self.q_table: pd.DataFrame = Q_TABLE
-        self.to_explore: int = Q_TABLE_SIZE
-        self.to_explore_yet: int = Q_TABLE_SIZE
+        self.size_unk: int = Q_TABLE_SIZE
 
         # history is a list of triples ( investment, price, List[qty sold] ) -> one triple for every round
-        investment = - self.qty_prod * self.price_prod
+        investment = self.qty_prod * self.price_prod
         self.history: List[Tuple[int, List[int]]] = [ ( investment, self.price_sell, [] ) ]
             
   
@@ -79,22 +80,39 @@ class Seller(Agent):
         prices = pd.Series([ 
             price for _, price, _ in self.get_history() 
         ])
-        prices.plot()
+        prices.plot(
+            xlabel="Rounds",
+            ylabel="Selling price"
+        )
         
+    # TODO: Fix investment
     def plot_profit(self) -> None:
         """ Displays profit variations """
         profits = pd.Series([ 
             price * sum(sales) - investment 
             for investment, price, sales in self.get_history() 
         ])
-        profits.plot()
+        profits.plot(
+            xlabel="Rounds",
+            ylabel="Profit"
+        )
     
     def plot_history(self) -> None:
         """ Displays sales history (quantity sold over price) """
         df_history = pd.DataFrame([
             ( price, sum(sales) ) for _, price, sales in self.get_history()
         ])
-        super().get_history(df_history, "Selling price", "Number of sales")
+        df_history.plot(
+            0, 
+            1, 
+            kind='scatter', 
+            xlim=[ PRICE_MIN, PRICE_MAX ],
+            xlabel="Selling price",
+            ylabel="Number of sales",
+            c=df_history.index, 
+            colormap='jet',
+            colorbar=True
+        )
     
     
     
@@ -127,4 +145,5 @@ class Seller(Agent):
             self.qty_prod = self.q_table.columns[self.q_table.max().argmax()]
         
         # Prepare a new list for next round
-        self.history.append(( - self.qty_prod * self.price_prod, self.price_sell, [] ))
+        investment = self.qty_prod * self.price_prod
+        self.history.append(( investment, self.price_sell, [] ))
