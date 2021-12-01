@@ -2,12 +2,13 @@
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
 
 def update_epsilon(epsilon: float, proportion: float) -> float:
     """ Computes next value of curiosity (epsilon), depending on proportion frac """
     # TODO: Find better function
-    return (1 - epsilon) * proportion + epsilon
+    return 1 - (1 - epsilon) * np.arctan(20 * proportion) / np.arctan(20)
 
 
 def plot_q_table(df, title: str = "") -> None:
