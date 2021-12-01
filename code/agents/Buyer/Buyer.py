@@ -63,6 +63,7 @@ class Buyer(Agent):
         
         # Initialize Q-table
         self.q_table: pd.DataFrame = Q_TABLE
+        self.q_table = self.q_table.drop(range(self.budget+1, BUDGET_MAX+1), axis=1)
         self.size_unk: int = Q_TABLE_SIZE
             
         # history is a list of lists (one for every round) of triples ( budget_before, price, quantity )
@@ -103,9 +104,15 @@ class Buyer(Agent):
             colorbar=True
         )
         
-    def plot_sub_q_tables(self) -> None:
+    def plot_sub_q_tables(self, budgets: Union[int, List[int]] = []) -> None:
         """ Displays heatmap of learnt Q-table, for each budget """
-        for budget in self.get_q_table().columns:
+        if budgets:
+            if type(budgets) == int:
+                budgets = [budgets]
+        else:
+            budgets = self.get_q_table().columns
+
+        for budget in budgets:
             sub_q_table = self.get_q_table().loc[budget].copy(deep=True)
             sub_q_table.loc[:, 1:100] = sub_q_table.loc[:, 1:100][sub_q_table.loc[:, 1:100]!=0.]
             sub_q_table.dropna(axis=1, how='all')
@@ -145,6 +152,7 @@ class Buyer(Agent):
         # Compute penalty for budget not spent
         penalty = self.penalty * self.budget_left
         
+        # print(f"Buyer {self.name} learning...")
         for i, purchase in enumerate(last_round_hist):
             budget, price, qty = purchase
             
@@ -157,10 +165,16 @@ class Buyer(Agent):
             # Get max potential Q-value
             budget_left = last_round_hist[i+1][0] if i < nb_purchases - 1 else self.budget_left
             potential_reward = self.q_table.loc[budget_left].max().max()
+
+            # q_value_before = self.q_table.loc[(budget, price), qty]
         
             # Update Q-table
             self.q_table.loc[(budget, price), qty] *= 1 - self.alpha
             self.q_table.loc[(budget, price), qty] += self.alpha * (reward + self.gamma * potential_reward)     # TODO: Incentivize more to buy
+
+            # print(f"Q-value {budget, price, qty}: {q_value_before} -> {self.q_table.loc[(budget, price), qty]}")
+            # print(f"Reward - {reward} | Potential reward - {potential_reward}")
+            # print("------------------------------------\n")
         
         # Give buyers their budget for next round
         self.budget_left = self.budget

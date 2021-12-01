@@ -85,7 +85,6 @@ class Seller(Agent):
             ylabel="Selling price"
         )
         
-    # TODO: Fix investment
     def plot_profit(self) -> None:
         """ Displays profit variations """
         profits = pd.Series([ 
@@ -130,9 +129,16 @@ class Seller(Agent):
         qty_sold = self.qty_prod - self.qty_left
         reward = qty_sold * self.price_sell - self.qty_prod * self.price_prod
         
+        # q_value_before = self.q_table.loc[self.price_sell, self.qty_prod]
+
         # Update Q-table
         self.q_table.loc[self.price_sell, self.qty_prod] *= 1 - self.alpha
         self.q_table.loc[self.price_sell, self.qty_prod] += self.alpha * reward
+
+        # print(f"Seller {self.name} learning...")
+        # print(f"Q-value {self.price_sell, self.qty_prod}: {q_value_before} -> {self.q_table.loc[self.price_sell, self.qty_prod]}")
+        # print(f"Reward - {reward}")
+        # print("------------------------------------\n")
         
         # Get next price with e-greedy policy
         if rd.random() < self.epsilon_updated():
@@ -144,6 +150,8 @@ class Seller(Agent):
             self.price_sell = self.q_table.index[self.q_table.max(axis=1).argmax()]
             self.qty_prod = self.q_table.columns[self.q_table.max().argmax()]
         
+        # Give buyers their budget for next round
+        self.qty_left = self.qty_prod        
         # Prepare a new list for next round
         investment = self.qty_prod * self.price_prod
         self.history.append(( investment, self.price_sell, [] ))
