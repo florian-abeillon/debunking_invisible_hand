@@ -62,7 +62,7 @@ class Agent:
     def epsilon_updated(self) -> float:
         """ Returns epsilon factor dynamically adjusted """
         # Compute epsilon, given the current state of exploration of the Q-table
-        epsilon = update_epsilon(self.epsilon, self.proportion_unk)
+        epsilon = update_epsilon(self.proportion_unk, self.epsilon)
         # Update the estimation of the number of cells yet to explore
         self.proportion_unk = max(0, self.proportion_unk - epsilon / self.size_unk)
         return epsilon 

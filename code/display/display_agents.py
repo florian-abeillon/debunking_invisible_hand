@@ -19,7 +19,7 @@ def plot_epsilon(epsilon: float, size_unk: int, nb_rounds: int) -> None:
     epsilon_values = []
     proportion = 1
     for _ in range(y_lim):
-        epsilon_values.append(update_epsilon(epsilon, proportion))
+        epsilon_values.append(update_epsilon(proportion, epsilon))
         proportion -= epsilon_values[-1] / size_unk
 
     fig = sns.lineplot(
