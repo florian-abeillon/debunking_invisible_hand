@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def update_epsilon(proportion: float, epsilon: float, steepness: int = 20, break_point: float = 0.5) -> float:
+def update_epsilon(proportion: float, epsilon: float, steepness: int = 10, break_point: float = 0.5) -> float:
     """ Computes next value of curiosity (epsilon), depending on proportion frac """
-    return 1 / (1 + math.exp(- steepness * (proportion - break_point)))
+    return epsilon + (1 - epsilon) / (1 + math.exp(- steepness * (proportion - break_point)))
 
 
 def plot_q_table(df, title: str = "") -> None:

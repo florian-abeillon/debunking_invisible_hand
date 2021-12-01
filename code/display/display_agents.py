@@ -15,7 +15,7 @@ def plot_avg_q_table(agents: list) -> None:
 def plot_epsilon(epsilon: float, size_unk: int, nb_rounds: int) -> None:
     """ Displays evolution of curiosity (epsilon factor) """
 
-    y_lim = 10 * nb_rounds
+    y_lim = min(2.5 * size_unk, 10 * nb_rounds) if nb_rounds < 0.25 * size_unk else 1.1 * nb_rounds
     epsilon_values = []
     proportion = 1
     for _ in range(y_lim):

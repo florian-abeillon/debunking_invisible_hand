@@ -130,7 +130,7 @@ class Buyer(Agent):
         qty_max = min(qty_left, self.budget_left // price)
         if rd.random() < self.epsilon_updated():
             # Exploration: Try out a random quantity
-            qty_to_buy = rd.choice(list(self.q_table.columns[:qty_max+1]))
+            qty_to_buy = rd.choice(range(qty_max+1))
         else:
             # Exploitation: Go for maximizing quantity
             qty_to_buy = self.q_table.columns[self.q_table.max()[:qty_max+1].argmax()] 
