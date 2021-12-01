@@ -88,29 +88,29 @@ class Buyer(Agent):
     # TODO
     def plot_history(self) -> None:
         """ Displays purchases history (quantity purchased over price) """
-        df_history = pd.DataFrame([
-            [ ( price, qty ) for _, price, qty in round_hist ]
-            for round_hist in self.get_history()
-        ])
-        df_history.plot(
-            0, 
-            1, 
-            kind='scatter', 
-            xlim=[ PRICE_MIN, PRICE_MAX ],
-            xlabel="Price",
-            ylabel="Number of purchases",
-            c=df_history.index, 
-            colormap='jet',
-            colorbar=True
-        )
+        pass
+        # df_history = pd.DataFrame([
+        #     [ ( price, qty ) for _, price, qty in round_hist ]
+        #     for round_hist in self.get_history()
+        # ])
+        # df_history.plot(
+        #     0, 
+        #     1, 
+        #     kind='scatter', 
+        #     xlim=[ PRICE_MIN, PRICE_MAX ],
+        #     xlabel="Price",
+        #     ylabel="Number of purchases",
+        #     c=df_history.index, 
+        #     colormap='jet',
+        #     colorbar=True
+        # )
         
     def plot_sub_q_tables(self, budgets: Union[int, List[int]] = []) -> None:
         """ Displays heatmap of learnt Q-table, for each budget """
-        if budgets:
-            if type(budgets) == int:
-                budgets = [budgets]
-        else:
+        if not budgets:
             budgets = self.get_q_table().columns
+        elif type(budgets) == int:
+            budgets = [budgets]
 
         for budget in budgets:
             sub_q_table = self.get_q_table().loc[budget].copy(deep=True)

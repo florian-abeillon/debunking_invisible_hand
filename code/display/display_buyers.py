@@ -13,10 +13,9 @@ def plot_avg_sub_q_tables(buyers: list, budgets: Union[int, List[int]] = []) -> 
     df_avg.index = pd.MultiIndex.from_tuples(df_avg.index)
 
     if budgets:
-        if type(budgets) == int:
-            budgets = [budgets]
-    else:
         budgets = df_avg.index.levels[0]
+    elif type(budgets) == int:
+        budgets = [budgets]       
 
     for budget in budgets:
         sub_df_avg = df_avg.loc[budget].copy(deep=True)
