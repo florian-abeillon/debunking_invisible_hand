@@ -5,13 +5,13 @@ import random as rd
 from typing import List, Tuple, Union
 
 import pandas as pd
-import seaborn as sns
 from agents.Agent import Agent
 from agents.Buyer.constants import (BUDGET, CURIOSITY, MEMORY, MYOPIA, PENALTY,
-                                    RISK_AVERSITY)
+                                    RISK_TOLERANCE)
 from agents.Buyer.utils import get_q_table, get_q_table_size
 from agents.constants import (BUDGET_MAX, BUDGET_MIN, PRICE_MAX, PRICE_MIN,
                               QTY_MAX)
+from src.utils import plot_q_table
 
 Q_TABLE = get_q_table(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
@@ -37,7 +37,7 @@ class Buyer(Agent):
     def __init__(self,  
                  budget: int = BUDGET, 
                  alpha: float = MEMORY, 
-                 gamma: float = RISK_AVERSITY, 
+                 gamma: float = RISK_TOLERANCE, 
                  epsilon: float = CURIOSITY,
                  myopia: float = MYOPIA,
                  penalty: float = PENALTY,
@@ -103,14 +103,13 @@ class Buyer(Agent):
             colorbar=True
         )
         
-    # TODO
-    def plot_q_table(self) -> None:
+    def plot_sub_q_tables(self) -> None:
         """ Displays heatmap of learnt Q-table, for each budget """
-        sns.heatmap(
-            self.q_table.sort_index(ascending=False), 
-            cmap='jet_r', 
-            cbar=True
-        )
+        for budget in self.get_q_table().columns:
+            sub_q_table = self.get_q_table().loc[budget].copy(deep=True)
+            sub_q_table.loc[:, 1:100] = sub_q_table.loc[:, 1:100][sub_q_table.loc[:, 1:100]!=0.]
+            sub_q_table.dropna(axis=1, how='all')
+            plot_q_table(sub_q_table)
     
     
     

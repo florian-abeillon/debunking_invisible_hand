@@ -48,10 +48,14 @@ class Agent:
         return self.history
     
     
+
+    def plot_history(self) -> None:
+        """ Displays transactions history """
+        raise NotImplementedError
         
     def plot_q_table(self) -> None:
         """ Displays heatmap of learnt Q-table """
-        plot_q_table(self.q_table)
+        plot_q_table(self.get_q_table())
         
 
 
@@ -60,7 +64,7 @@ class Agent:
         # Compute epsilon, given the current state of exploration of the Q-table
         epsilon = update_epsilon(self.epsilon, self.proportion_unk)
         # Update the estimation of the number of cells yet to explore
-        self.proportion_unk -= epsilon / self.size_unk
+        self.proportion_unk = max(0, self.proportion_unk - epsilon / self.size_unk)
         return epsilon 
 
 
