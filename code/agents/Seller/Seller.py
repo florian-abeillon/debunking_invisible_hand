@@ -9,6 +9,7 @@ from agents.Agent import Agent
 from agents.constants import PRICE_MAX, PRICE_MIN, QTY_MAX, QTY_MIN
 from agents.Seller.constants import CURIOSITY, MEMORY, PRICE_PROD
 from agents.Seller.utils import get_q_table, get_q_table_size
+from agents.utils import update_sparse
 
 Q_TABLE = get_q_table(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
@@ -132,8 +133,8 @@ class Seller(Agent):
         # q_value_before = self.q_table.loc[self.price_sell, self.qty_prod]
 
         # Update Q-table
-        self.q_table.loc[self.price_sell, self.qty_prod] *= 1 - self.alpha
-        self.q_table.loc[self.price_sell, self.qty_prod] += self.alpha * reward
+        update = lambda q_score: q_score + self.alpha * (reward - q_score)
+        update_sparse(self.q_table, self.price_sell, self.qty_prod, update)
 
         # print(f"Seller {self.name} learning...")
         # print(f"Q-value {self.price_sell, self.qty_prod}: {q_value_before} -> {self.q_table.loc[self.price_sell, self.qty_prod]}")

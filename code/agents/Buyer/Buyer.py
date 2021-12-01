@@ -11,6 +11,7 @@ from agents.Buyer.constants import (BUDGET, CURIOSITY, MEMORY, MYOPIA, PENALTY,
 from agents.Buyer.utils import get_q_table, get_q_table_size
 from agents.constants import (BUDGET_MAX, BUDGET_MIN, PRICE_MAX, PRICE_MIN,
                               QTY_MAX)
+from agents.utils import update_sparse
 from src.utils import plot_q_table
 
 Q_TABLE = get_q_table(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
@@ -88,29 +89,29 @@ class Buyer(Agent):
     # TODO
     def plot_history(self) -> None:
         """ Displays purchases history (quantity purchased over price) """
-        df_history = pd.DataFrame([
-            [ ( price, qty ) for _, price, qty in round_hist ]
-            for round_hist in self.get_history()
-        ])
-        df_history.plot(
-            0, 
-            1, 
-            kind='scatter', 
-            xlim=[ PRICE_MIN, PRICE_MAX ],
-            xlabel="Price",
-            ylabel="Number of purchases",
-            c=df_history.index, 
-            colormap='jet',
-            colorbar=True
-        )
+        pass
+        # df_history = pd.DataFrame([
+        #     [ ( price, qty ) for _, price, qty in round_hist ]
+        #     for round_hist in self.get_history()
+        # ])
+        # df_history.plot(
+        #     0, 
+        #     1, 
+        #     kind='scatter', 
+        #     xlim=[ PRICE_MIN, PRICE_MAX ],
+        #     xlabel="Price",
+        #     ylabel="Number of purchases",
+        #     c=df_history.index, 
+        #     colormap='jet',
+        #     colorbar=True
+        # )
         
     def plot_sub_q_tables(self, budgets: Union[int, List[int]] = []) -> None:
         """ Displays heatmap of learnt Q-table, for each budget """
-        if budgets:
-            if type(budgets) == int:
-                budgets = [budgets]
-        else:
+        if not budgets:
             budgets = self.get_q_table().columns
+        elif type(budgets) == int:
+            budgets = [budgets]
 
         for budget in budgets:
             sub_q_table = self.get_q_table().loc[budget].copy(deep=True)
@@ -169,8 +170,8 @@ class Buyer(Agent):
             # q_value_before = self.q_table.loc[(budget, price), qty]
         
             # Update Q-table
-            self.q_table.loc[(budget, price), qty] *= 1 - self.alpha
-            self.q_table.loc[(budget, price), qty] += self.alpha * (reward + self.gamma * potential_reward)     # TODO: Incentivize more to buy
+            update = lambda q_score: q_score + self.alpha * (reward + self.gamma * potential_reward - q_score)
+            update_sparse(self.q_table, (budget, price), qty, update)
 
             # print(f"Q-value {budget, price, qty}: {q_value_before} -> {self.q_table.loc[(budget, price), qty]}")
             # print(f"Reward - {reward} | Potential reward - {potential_reward}")

@@ -11,11 +11,15 @@ def get_q_table(budget_max: int, price_min: int, price_max: int, qty_max: int) -
         for i in range(0, budget_max+1) 
         for j in range(price_min, price_max+1) 
     ]
-    return pd.DataFrame(
-        index=pd.MultiIndex.from_tuples(index_list), 
-        columns=range(0, qty_max+1), 
-        dtype=float
-    ).fillna(0.)
+    data = {
+        qty: pd.arrays.SparseArray([ 0 for _ in index_list ]) 
+        for qty in range(0, qty_max+1)
+    }
+
+    q_table = pd.DataFrame(data)
+    q_table.index = pd.MultiIndex.from_tuples(index_list)
+    q_table.columns = range(0, qty_max+1)
+    return q_table
     
 
 def get_q_table_size(budget_max: int, price_min: int, price_max: int, qty_max: int):
