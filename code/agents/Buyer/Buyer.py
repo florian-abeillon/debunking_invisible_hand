@@ -5,6 +5,7 @@ import random as rd
 from typing import List, Tuple, Union
 
 import pandas as pd
+import numpy as np
 from agents.Agent import Agent
 from agents.Buyer.constants import (BUDGET, CURIOSITY, MEMORY, MYOPIA, PENALTY,
                                     RISK_TOLERANCE)
@@ -63,7 +64,7 @@ class Buyer(Agent):
         
         # Initialize Q-table
         self.q_table: pd.DataFrame = Q_TABLE
-        self.q_table = self.q_table.drop(range(self.budget+1, BUDGET_MAX+1), axis=1)
+        # self.q_table = self.q_table.drop(range(self.budget+1, BUDGET_MAX+1), axis=1)
         self.size_unk: int = Q_TABLE_SIZE
             
         # history is a list of lists (one for every round) of triples ( budget_before, price, quantity )
@@ -130,10 +131,12 @@ class Buyer(Agent):
         qty_max = min(qty_left, self.budget_left // price)
         if rd.random() < self.epsilon_updated():
             # Exploration: Try out a random quantity
-            qty_to_buy = rd.choice(list(self.q_table.columns[:qty_max+1]))
+            # qty_to_buy = rd.choice(list(self.q_table.columns[:qty_max+1]))
+            qty_to_buy = rd.choice(range(qty_max+1))
         else:
             # Exploitation: Go for maximizing quantity
-            qty_to_buy = self.q_table.columns[self.q_table.max()[:qty_max+1].argmax()] 
+            # qty_to_buy = self.q_table.columns[self.q_table.max()[:qty_max+1].argmax()]
+            qty_to_buy = np.where(self.q_table == np.amax(self.q_table))[2][0]
         
         self.history[-1].append(( self.budget_left, price, qty_to_buy ))
         self.budget_left -= qty_to_buy * price
@@ -164,13 +167,13 @@ class Buyer(Agent):
             
             # Get max potential Q-value
             budget_left = last_round_hist[i+1][0] if i < nb_purchases - 1 else self.budget_left
-            potential_reward = self.q_table.loc[budget_left].max().max()
+            potential_reward = np.amax(self.q_table[budget_left, :, :])
 
             # q_value_before = self.q_table.loc[(budget, price), qty]
         
             # Update Q-table
-            self.q_table.loc[(budget, price), qty] *= 1 - self.alpha
-            self.q_table.loc[(budget, price), qty] += self.alpha * (reward + self.gamma * potential_reward)     # TODO: Incentivize more to buy
+            self.q_table[budget, price, qty] *= 1 - self.alpha
+            self.q_table[budget, price, qty] += self.alpha * (reward + self.gamma * potential_reward)     # TODO: Incentivize more to buy
 
             # print(f"Q-value {budget, price, qty}: {q_value_before} -> {self.q_table.loc[(budget, price), qty]}")
             # print(f"Reward - {reward} | Potential reward - {potential_reward}")

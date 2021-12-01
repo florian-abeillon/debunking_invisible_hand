@@ -1,11 +1,12 @@
 """ agents/Buyer/utils """
 
-import pandas as pd
+import numpy as np
 
 
-def get_q_table(budget_max: int, price_min: int, price_max: int, qty_max: int) -> pd.DataFrame:
+def get_q_table(budget_max: int, price_min: int, price_max: int, qty_max: int) -> np.array:
     """ Create a buyer's Q-table, initialized with zeros """
     # Indexes are pairs (budget_left, price)
+    return np.zeros((budget_max + 1, price_max + 1, qty_max + 1))
     index_list = [ 
         ( i, j ) 
         for i in range(0, budget_max+1) 

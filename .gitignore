@@ -2,3 +2,5 @@
 **/__pycache__
 code/Test.ipynb
 .DS_STORE
+code/.prof_stats
+code/profile.txt
