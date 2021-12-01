@@ -3,13 +3,15 @@
 import math
 
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 
 
 def update_epsilon(epsilon: float, proportion: float) -> float:
     """ Computes next value of curiosity (epsilon), depending on proportion frac """
     # return (1 - epsilon) * math.floor(10 * proportion) + epsilon
-    return (1 - epsilon) * proportion + epsilon
+    # return (1 - epsilon) * proportion + epsilon
+    return 1 - (1 - epsilon) * np.arctan(20 * proportion) / np.arctan(20)
 
 
 def plot_q_table(df, title: str = "") -> None:
