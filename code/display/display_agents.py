@@ -1,4 +1,4 @@
-""" src/display/display_agents """
+""" display/display_agents """
 
 import pandas as pd
 import seaborn as sns

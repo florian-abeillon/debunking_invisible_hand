@@ -1,4 +1,4 @@
-""" src/display/display_buyers """
+""" display/display_buyers """
 
 from typing import List, Union
 
@@ -12,10 +12,10 @@ def plot_avg_sub_q_tables(buyers: list, budgets: Union[int, List[int]] = []) -> 
     df_avg = df_concat.groupby(df_concat.index).mean()
     df_avg.index = pd.MultiIndex.from_tuples(df_avg.index)
 
-    if budgets:
+    if not budgets:
         budgets = df_avg.index.levels[0]
     elif type(budgets) == int:
-        budgets = [budgets]       
+        budgets = [budgets]
 
     for budget in budgets:
         sub_df_avg = df_avg.loc[budget].copy(deep=True)

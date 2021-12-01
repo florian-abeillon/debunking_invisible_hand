@@ -1,4 +1,4 @@
-""" src/display/display_sellers """
+""" display/display_sellers """
 
 import pandas as pd
 
