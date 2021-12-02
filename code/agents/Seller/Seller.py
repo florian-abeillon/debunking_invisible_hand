@@ -53,7 +53,7 @@ class Seller(Agent):
             
         # Initialize randomly first selling price
         self.qty_prod: int = rd.randint(QTY_MIN, QTY_MAX)
-        self.price_sell: int = rd.randint(self.price_prod, PRICE_MAX)
+        self.price_sell: int = rd.randint(PRICE_MIN, PRICE_MAX)
         
         self.qty_left: int = self.qty_prod
         
@@ -150,6 +150,8 @@ class Seller(Agent):
         else:
             # Exploitation: Go for maximizing pair ( price_sell, qty_prod )
             self.price_sell, self.qty_prod = np.unravel_index(np.argmax(self.q_table), self.q_table.shape)
+            self.price_sell += PRICE_MIN
+            self.qty_prod += QTY_MIN
         
         # Give buyers their budget for next round
         self.qty_left = self.qty_prod        
