@@ -127,6 +127,7 @@ class Buyer(Agent):
     
     def buy(self, price: int, qty_left: int) -> int:
         """ Returns the number of goods bought at price price """
+        assert price > 0, f"price={price} should be positive (no free item)"
         
         # Get quantity to buy with e-greedy policy, given that
         # * quantity shall be lower than qty_left (Buyer cannot buy more goods than available)
@@ -169,7 +170,7 @@ class Buyer(Agent):
             
             # Get max potential Q-value
             budget_left = last_round_hist[i+1][0] if i < nb_purchases - 1 else self.budget_left
-            potential_reward = np.max(self.q_table[budget_left])
+            potential_reward = np.nanmax(self.q_table[budget_left])
 
             if Verbose:
                 q_value_before = self.q_table[budget, idx_price(price), qty]
