@@ -122,23 +122,25 @@ class Seller(Agent):
         self.history[-1][2].append(qty)
         
             
-    def learn(self) -> None:
+    def learn(self, Verbose: bool = False) -> None:
         """ Update Q-table ("learn") and reinitialize params """
         
         # Compute reward (profit)
         qty_sold = self.qty_prod - self.qty_left
         reward = qty_sold * self.price_sell - self.qty_prod * self.price_prod
         
-        # q_value_before = self.q_table[idx_price(self.price_sell), idx_qty(self.qty_prod)]
+        if Verbose:
+            q_value_before = self.q_table[idx_price(self.price_sell), idx_qty(self.qty_prod)]
 
         # Update Q-table
         self.q_table[idx_price(self.price_sell), idx_qty(self.qty_prod)] *= 1 - self.alpha
         self.q_table[idx_price(self.price_sell), idx_qty(self.qty_prod)] += self.alpha * reward
 
-        # print(f"Seller {self.name} learning...")
-        # print(f"Q-value {self.price_sell, self.qty_prod}: {q_value_before} -> {self.q_table[idx_price(self.price_sell), idx_qty(self.qty_prod)]}")
-        # print(f"Reward - {reward}")
-        # print("------------------------------------\n")
+        if Verbose:
+            print(f"Seller {self.name} learning...")
+            print(f"Q-value {self.price_sell, self.qty_prod}: {q_value_before} -> {self.q_table[idx_price(self.price_sell), idx_qty(self.qty_prod)]}")
+            print(f"Reward - {reward}")
+            print("------------------------------------\n")
         
         # Get next price with e-greedy policy
         if rd.random() < self.epsilon_updated():

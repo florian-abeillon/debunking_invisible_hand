@@ -145,7 +145,7 @@ class Buyer(Agent):
         return qty_to_buy
         
             
-    def learn(self) -> None:
+    def learn(self, Verbose: bool = False) -> None:
         """ Update Q-table ("learn") and reinitialize params """
 
         last_round_hist = self.history[-1]
@@ -171,15 +171,17 @@ class Buyer(Agent):
             budget_left = last_round_hist[i+1][0] if i < nb_purchases - 1 else self.budget_left
             potential_reward = np.max(self.q_table[budget_left])
 
-            # q_value_before = self.q_table[budget, idx_price(price), qty]
+            if Verbose:
+                q_value_before = self.q_table[budget, idx_price(price), qty]
         
             # Update Q-table
             self.q_table[budget, idx_price(price), qty] *= 1 - self.alpha
             self.q_table[budget, idx_price(price), qty] += self.alpha * (reward + self.gamma * potential_reward)     # TODO: Incentivize more to buy
 
-            # print(f"Q-value {budget, price, qty}: {q_value_before} -> {self.q_table[budget, idx_price(price), qty]}")
-            # print(f"Reward - {reward} | Potential reward - {potential_reward}")
-            # print("------------------------------------\n")
+            if Verbose:
+                print(f"Q-value {budget, price, qty}: {q_value_before} -> {self.q_table[budget, idx_price(price), qty]}")
+                print(f"Reward - {reward} | Potential reward - {potential_reward}")
+                print("------------------------------------\n")
         
         # Give buyers their budget for next round
         self.budget_left = self.budget

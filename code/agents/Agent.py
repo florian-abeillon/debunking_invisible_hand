@@ -33,13 +33,16 @@ class Agent:
         self.size_unk: int = None               # To be set in child class
         self.proportion_unk: int = 1
             
-        # History of all Agent's transactions
+        # History of Agent's transactions
         self.history: list = None               # To be set in child class
             
             
             
     def get_q_table(self) -> np.array:
         return self.q_table
+
+    def get_sparsity(self) -> float:
+        return np.count_nonzero(self.q_table == 0) / np.count_nonzero(self.q_table != None)
             
     def get_size_unk(self) -> int:
         return self.size_unk
