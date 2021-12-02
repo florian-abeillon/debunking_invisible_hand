@@ -2,28 +2,24 @@
 
 from typing import List, Union
 
-import pandas as pd
+import numpy as np
+from agents import Buyer
 from src.utils import plot_q_table
 
 
-def plot_avg_sub_q_tables(buyers: list, budgets: Union[int, List[int]] = []) -> None:
+def plot_avg_sub_q_tables(buyers: List[Buyer], budgets: Union[int, List[int]] = []) -> None:
     """ Displays heatmap of average learnt Q-table, for each budget """
-    df_concat = pd.concat([ buyer.get_q_table() for buyer in buyers ])
-    df_avg = df_concat.groupby(df_concat.index).mean()
-    df_avg.index = pd.MultiIndex.from_tuples(df_avg.index)
+    q_table_avg = np.mean([ buyer.get_q_table() for buyer in buyers ], axis=0)
 
     if not budgets:
-        budgets = df_avg.index.levels[0]
+        budgets = range(q_table_avg.shape[0])
     elif type(budgets) == int:
         budgets = [budgets]
 
     for budget in budgets:
-        sub_df_avg = df_avg.loc[budget].copy(deep=True)
-        sub_df_avg.loc[:, 1:100] = sub_df_avg.loc[:, 1:100][sub_df_avg.loc[:, 1:100]!=0.]
-        sub_df_avg.dropna(axis=1, how='all')
-
+        sub_q_table_avg = q_table_avg[budget]
         title = f"Sub-Q-table for budget={budget}"
-        plot_q_table(sub_df_avg, title=title)
+        plot_q_table(sub_q_table_avg, title=title)
 
 
 # TODO

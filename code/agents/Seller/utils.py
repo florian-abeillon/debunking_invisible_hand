@@ -1,15 +1,11 @@
 """ agents/Seller/utils """
 
-import pandas as pd
+import numpy as np
 
 
-def get_q_table(price_min: int, price_max: int, qty_min: int, qty_max: int) -> pd.DataFrame:
-    """ Create a buyer's Q-table, initialized with zeros """
-    return pd.DataFrame(
-        index=range(price_min, price_max+1), 
-        columns=range(qty_min, qty_max+1), 
-        dtype=float
-    ).fillna(0.)
+def get_q_table(price_min: int, price_max: int, qty_min: int, qty_max: int) -> np.array:
+    """ Create a seller's Q-table, initialized with zeros """
+    return np.zeros((price_max - price_min + 1, qty_max - qty_min + 1))
     
 
 def get_q_table_size(price_min: int, price_max: int, qty_min: int, qty_max: int) -> int:

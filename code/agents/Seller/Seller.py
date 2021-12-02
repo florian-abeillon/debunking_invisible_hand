@@ -1,9 +1,9 @@
 """ agents/Seller/Seller """
 
-import math
 import random as rd
 from typing import List, Tuple, Union
 
+import numpy as np
 import pandas as pd
 from agents.Agent import Agent
 from agents.constants import PRICE_MAX, PRICE_MIN, QTY_MAX, QTY_MIN
@@ -12,6 +12,9 @@ from agents.Seller.utils import get_q_table, get_q_table_size
 
 Q_TABLE = get_q_table(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
+
+price_idx = lambda price: price - PRICE_MIN
+qty_idx = lambda qty: qty - QTY_MIN
 
 
 class Seller(Agent):
@@ -46,7 +49,7 @@ class Seller(Agent):
         if stochastic:
             std_dev = (PRICE_MAX - PRICE_MIN) / 100
             price_prod = rd.gauss(price_prod, std_dev)
-            self.price_prod = min(PRICE_MAX, max(PRICE_MIN, math.floor(price_prod)))
+            self.price_prod = min(PRICE_MAX, max(PRICE_MIN, int(price_prod)))
             
         # Initialize randomly first selling price
         self.qty_prod: int = rd.randint(QTY_MIN, QTY_MAX)
@@ -55,7 +58,7 @@ class Seller(Agent):
         self.qty_left: int = self.qty_prod
         
         # Q-learning table
-        self.q_table: pd.DataFrame = Q_TABLE
+        self.q_table: np.array = np.copy(Q_TABLE)
         self.size_unk: int = Q_TABLE_SIZE
 
         # history is a list of triples ( investment, price, List[qty sold] ) -> one triple for every round
@@ -69,9 +72,6 @@ class Seller(Agent):
             
     def get_qty(self) -> int:
         return self.qty_left
-            
-    def get_q_table(self) -> pd.DataFrame:
-        return self.q_table
     
 
     
@@ -129,26 +129,25 @@ class Seller(Agent):
         qty_sold = self.qty_prod - self.qty_left
         reward = qty_sold * self.price_sell - self.qty_prod * self.price_prod
         
-        # q_value_before = self.q_table.loc[self.price_sell, self.qty_prod]
+        # q_value_before = self.q_table[price_idx(self.price_sell), qty_idx(self.qty_prod)]
 
         # Update Q-table
-        self.q_table.loc[self.price_sell, self.qty_prod] *= 1 - self.alpha
-        self.q_table.loc[self.price_sell, self.qty_prod] += self.alpha * reward
+        self.q_table[price_idx(self.price_sell), qty_idx(self.qty_prod)] *= 1 - self.alpha
+        self.q_table[price_idx(self.price_sell), qty_idx(self.qty_prod)] += self.alpha * reward
 
         # print(f"Seller {self.name} learning...")
-        # print(f"Q-value {self.price_sell, self.qty_prod}: {q_value_before} -> {self.q_table.loc[self.price_sell, self.qty_prod]}")
+        # print(f"Q-value {self.price_sell, self.qty_prod}: {q_value_before} -> {self.q_table[price_idx(self.price_sell), qty_idx(self.qty_prod)]}")
         # print(f"Reward - {reward}")
         # print("------------------------------------\n")
         
         # Get next price with e-greedy policy
         if rd.random() < self.epsilon_updated():
             # Exploration: Try out a random pair ( price_sell, qty_prod )
-            self.price_sell = rd.choice(list(self.q_table.index))
-            self.qty_prod = rd.choice(list(self.q_table.columns))
+            self.price_sell = rd.randint(PRICE_MIN, PRICE_MAX)
+            self.qty_prod = rd.randint(QTY_MIN, QTY_MAX)
         else:
             # Exploitation: Go for maximizing pair ( price_sell, qty_prod )
-            self.price_sell = self.q_table.index[self.q_table.max(axis=1).argmax()]
-            self.qty_prod = self.q_table.columns[self.q_table.max().argmax()]
+            self.price_sell, self.qty_prod = np.unravel_index(np.argmax(self.q_table), self.q_table.shape)
         
         # Give buyers their budget for next round
         self.qty_left = self.qty_prod        

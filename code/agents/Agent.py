@@ -3,7 +3,7 @@
 from typing import Union
 from uuid import uuid4
 
-import pandas as pd
+import numpy as np
 from src.utils import plot_q_table, update_epsilon
 
 
@@ -29,7 +29,7 @@ class Agent:
         self.epsilon: float = epsilon
         
         # Q-learning table
-        self.q_table: pd.DataFrame = None       # To be set in child class
+        self.q_table: np.array = None           # To be set in child class
         self.size_unk: int = None               # To be set in child class
         self.proportion_unk: int = 1
             
@@ -38,7 +38,7 @@ class Agent:
             
             
             
-    def get_q_table(self) -> pd.DataFrame:
+    def get_q_table(self) -> np.array:
         return self.q_table
             
     def get_size_unk(self) -> int:
