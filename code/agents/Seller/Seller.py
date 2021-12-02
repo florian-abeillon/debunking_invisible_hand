@@ -13,8 +13,8 @@ from agents.Seller.utils import get_q_table, get_q_table_size
 Q_TABLE = get_q_table(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
 
-price_idx = lambda price: price - PRICE_MIN
-qty_idx = lambda qty: qty - QTY_MIN
+idx_price = lambda price: price - PRICE_MIN
+idx_qty = lambda qty: qty - QTY_MIN
 
 
 class Seller(Agent):
@@ -129,14 +129,14 @@ class Seller(Agent):
         qty_sold = self.qty_prod - self.qty_left
         reward = qty_sold * self.price_sell - self.qty_prod * self.price_prod
         
-        # q_value_before = self.q_table[price_idx(self.price_sell), qty_idx(self.qty_prod)]
+        # q_value_before = self.q_table[idx_price(self.price_sell), idx_qty(self.qty_prod)]
 
         # Update Q-table
-        self.q_table[price_idx(self.price_sell), qty_idx(self.qty_prod)] *= 1 - self.alpha
-        self.q_table[price_idx(self.price_sell), qty_idx(self.qty_prod)] += self.alpha * reward
+        self.q_table[idx_price(self.price_sell), idx_qty(self.qty_prod)] *= 1 - self.alpha
+        self.q_table[idx_price(self.price_sell), idx_qty(self.qty_prod)] += self.alpha * reward
 
         # print(f"Seller {self.name} learning...")
-        # print(f"Q-value {self.price_sell, self.qty_prod}: {q_value_before} -> {self.q_table[price_idx(self.price_sell), qty_idx(self.qty_prod)]}")
+        # print(f"Q-value {self.price_sell, self.qty_prod}: {q_value_before} -> {self.q_table[idx_price(self.price_sell), idx_qty(self.qty_prod)]}")
         # print(f"Reward - {reward}")
         # print("------------------------------------\n")
         

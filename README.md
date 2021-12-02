@@ -1,8 +1,8 @@
 # debunking_invisible_hand
 
-> * Group Name: Les truites saumonées
-> * Group participants names: Abeillon, Florian - Arnórsson, Sverrir - Huang, Yilin
-> * Project Title: Debunking the Invisible Hand
+> __Debunking the *Invisible Hand*__  
+> *~ Les truites saumonées ~*  
+> Abeillon, Florian - Arnórsson, Sverrir - Huang, Yilin
 
 ## General Introduction
 

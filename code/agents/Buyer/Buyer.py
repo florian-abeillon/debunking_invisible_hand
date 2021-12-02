@@ -15,7 +15,7 @@ from src.utils import plot_q_table
 Q_TABLE = get_q_table(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
 
-price_idx = lambda price: price - PRICE_MIN
+idx_price = lambda price: price - PRICE_MIN
 
 
 class Buyer(Agent):
@@ -138,7 +138,7 @@ class Buyer(Agent):
             qty_to_buy = rd.randint(0, qty_lim)
         else:
             # Exploitation: Go for maximizing quantity
-            qty_to_buy = np.argmax(self.q_table[self.budget_left, price_idx(price)][:qty_lim+1])
+            qty_to_buy = np.argmax(self.q_table[self.budget_left, idx_price(price)][:qty_lim+1])
         
         self.history[-1].append(( self.budget_left, price, qty_to_buy ))
         self.budget_left -= qty_to_buy * price
@@ -171,13 +171,13 @@ class Buyer(Agent):
             budget_left = last_round_hist[i+1][0] if i < nb_purchases - 1 else self.budget_left
             potential_reward = np.max(self.q_table[budget_left])
 
-            # q_value_before = self.q_table[budget, price_idx(price), qty]
+            # q_value_before = self.q_table[budget, idx_price(price), qty]
         
             # Update Q-table
-            self.q_table[budget, price_idx(price), qty] *= 1 - self.alpha
-            self.q_table[budget, price_idx(price), qty] += self.alpha * (reward + self.gamma * potential_reward)     # TODO: Incentivize more to buy
+            self.q_table[budget, idx_price(price), qty] *= 1 - self.alpha
+            self.q_table[budget, idx_price(price), qty] += self.alpha * (reward + self.gamma * potential_reward)     # TODO: Incentivize more to buy
 
-            # print(f"Q-value {budget, price, qty}: {q_value_before} -> {self.q_table[budget, price_idx(price), qty]}")
+            # print(f"Q-value {budget, price, qty}: {q_value_before} -> {self.q_table[budget, idx_price(price), qty]}")
             # print(f"Reward - {reward} | Potential reward - {potential_reward}")
             # print("------------------------------------\n")
         

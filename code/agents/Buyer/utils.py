@@ -5,9 +5,15 @@ import numpy as np
 
 def get_q_table(budget_max: int, price_min: int, price_max: int, qty_max: int) -> np.array:
     """ Create a buyer's Q-table, initialized with zeros """
-    # TODO: Change zeros to None when qty > budget // price
     # TODO: Try with sparse arrays?
-    return np.zeros((budget_max + 1, price_max - price_min + 1, qty_max + 1))
+    assert price_min > 0, f"price_min={price_min} should be positive (no free item)"
+    a = np.empty((budget_max + 1, price_max - price_min + 1, qty_max + 1), dtype=object)
+    for budget in range(budget_max + 1):
+        for price in range(price_min, price_max + 1):
+            idx_price = price - price_min
+            qty_lim = min(qty_max, budget // price) + 1
+            a[budget, idx_price, :qty_lim] = 0.
+    return a
     
 
 def get_q_table_size(budget_max: int, price_min: int, price_max: int, qty_max: int):
