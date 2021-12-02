@@ -1,10 +1,8 @@
 """ agents/Buyer/Buyer """
 
-import math
 import random as rd
 from typing import List, Tuple, Union
 
-import pandas as pd
 import numpy as np
 from agents.Agent import Agent
 from agents.Buyer.constants import (BUDGET, CURIOSITY, MEMORY, MYOPIA, PENALTY,
@@ -16,6 +14,8 @@ from src.utils import plot_q_table
 
 Q_TABLE = get_q_table(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
+
+price_idx = lambda price: price - PRICE_MIN
 
 
 class Buyer(Agent):
@@ -58,13 +58,12 @@ class Buyer(Agent):
         if stochastic:
             std_dev = (BUDGET_MAX - BUDGET_MIN) / 100
             budget = rd.gauss(budget, std_dev)
-            self.budget = min(BUDGET_MAX, max(BUDGET_MIN, math.floor(budget)))
+            self.budget = min(BUDGET_MAX, max(BUDGET_MIN, int(budget)))
             
         self.budget_left = self.budget
         
         # Initialize Q-table
-        self.q_table: pd.DataFrame = Q_TABLE
-        # self.q_table = self.q_table.drop(range(self.budget+1, BUDGET_MAX+1), axis=1)
+        self.q_table: np.array = np.copy(Q_TABLE)[:self.budget+1]
         self.size_unk: int = Q_TABLE_SIZE
             
         # history is a list of lists (one for every round) of triples ( budget_before, price, quantity )
@@ -118,7 +117,12 @@ class Buyer(Agent):
             sub_q_table.loc[:, 1:100] = sub_q_table.loc[:, 1:100][sub_q_table.loc[:, 1:100]!=0.]
             sub_q_table.dropna(axis=1, how='all')
             plot_q_table(sub_q_table)
-    
+
+    # TODO
+    def plot_demand_curve(self) -> None:
+        """ Displays demand curve from learnt Q-table """
+        pass
+
     
     
     def buy(self, price: int, qty_left: int) -> int:
@@ -128,15 +132,13 @@ class Buyer(Agent):
         # * quantity shall be lower than qty_left (Buyer cannot buy more goods than available)
         # * quantity * price shall be lower than budget (Buyer cannot buy goods for more than its budget)
         
-        qty_max = min(qty_left, self.budget_left // price)
+        qty_lim = min(qty_left, self.budget_left // price)
         if rd.random() < self.epsilon_updated():
             # Exploration: Try out a random quantity
-            # qty_to_buy = rd.choice(list(self.q_table.columns[:qty_max+1]))
-            qty_to_buy = rd.choice(range(qty_max+1))
+            qty_to_buy = rd.randint(0, qty_lim)
         else:
             # Exploitation: Go for maximizing quantity
-            # qty_to_buy = self.q_table.columns[self.q_table.max()[:qty_max+1].argmax()]
-            qty_to_buy = np.where(self.q_table == np.amax(self.q_table))[2][0]
+            qty_to_buy = np.argmax(self.q_table[self.budget_left, price_idx(price)][:qty_lim+1])
         
         self.history[-1].append(( self.budget_left, price, qty_to_buy ))
         self.budget_left -= qty_to_buy * price
@@ -167,15 +169,15 @@ class Buyer(Agent):
             
             # Get max potential Q-value
             budget_left = last_round_hist[i+1][0] if i < nb_purchases - 1 else self.budget_left
-            potential_reward = np.amax(self.q_table[budget_left, :, :])
+            potential_reward = np.max(self.q_table[budget_left])
 
-            # q_value_before = self.q_table.loc[(budget, price), qty]
+            # q_value_before = self.q_table[budget, price_idx(price), qty]
         
             # Update Q-table
-            self.q_table[budget, price, qty] *= 1 - self.alpha
-            self.q_table[budget, price, qty] += self.alpha * (reward + self.gamma * potential_reward)     # TODO: Incentivize more to buy
+            self.q_table[budget, price_idx(price), qty] *= 1 - self.alpha
+            self.q_table[budget, price_idx(price), qty] += self.alpha * (reward + self.gamma * potential_reward)     # TODO: Incentivize more to buy
 
-            # print(f"Q-value {budget, price, qty}: {q_value_before} -> {self.q_table.loc[(budget, price), qty]}")
+            # print(f"Q-value {budget, price, qty}: {q_value_before} -> {self.q_table[budget, price_idx(price), qty]}")
             # print(f"Reward - {reward} | Potential reward - {potential_reward}")
             # print("------------------------------------\n")
         

@@ -1,6 +1,5 @@
-.ipynb_checkpoints
+**/.ipynb_checkpoints
 **/__pycache__
-code/Test.ipynb
 .DS_STORE
 code/.prof_stats
 code/profile.txt
