@@ -8,8 +8,9 @@ import plotly.graph_objects as go
 from agents.Agent import Agent
 from agents.Buyer.utils import get_q_table, get_q_table_size
 from agents.constants import (BUDGET, BUDGET_MAX, BUDGET_MIN, CURIOSITY_BUYER,
-                              MEMORY, MYOPIA, PENALTY, PRICE_MAX, PRICE_MIN,
-                              QTY_MAX, RISK_TOLERANCE)
+                              MEMORY_BUYER, MYOPIA_BUYER, PENALTY_BUYER,
+                              PRICE_MAX, PRICE_MIN, QTY_MAX,
+                              RISK_TOLERANCE_BUYER)
 from display.display_buyers import (plot_budget, plot_demand_curve,
                                     plot_nb_purchases, plot_sub_q_tables,
                                     plot_w_slider)
@@ -39,17 +40,16 @@ class Buyer(Agent):
     
     def __init__(self,  
                  budget: int = BUDGET, 
-                 alpha: float = MEMORY, 
-                 gamma: float = RISK_TOLERANCE, 
+                 alpha: float = MEMORY_BUYER, 
+                 gamma: float = RISK_TOLERANCE_BUYER, 
                  epsilon: float = CURIOSITY_BUYER,
-                 myopia: float = MYOPIA,
-                 penalty: float = PENALTY,
+                 myopia: float = MYOPIA_BUYER,
+                 penalty: float = PENALTY_BUYER,
                  stochastic: bool = False,
                  name: Union[str, int] = ""):
 
-        super().__init__(alpha, epsilon, name=name)
+        super().__init__(alpha, gamma, epsilon, name=name)
         
-        self.gamma: float = gamma
         self.myopia: float = myopia
         self.penalty: float = penalty
         

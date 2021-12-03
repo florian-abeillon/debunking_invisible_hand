@@ -12,6 +12,7 @@ class Agent:
         Generic agent class
         * name: Unique identifier 
         * alpha: Q-learning alpha factor, representing agent's memory
+        * gamma: Q-learning gamma factor, representing agent's risk aversity
         * epsilon: e-greedy policy e factor, representing agent's curiosity
         * q_table: Q-learning table
         * size_unk: Total number of cells to explore in q_table
@@ -21,11 +22,13 @@ class Agent:
     
     def __init__(self,
                  alpha: float, 
+                 gamma: float, 
                  epsilon: float,
                  name: Union[str, int] = ""):
         
         self.name: str = str(name) if name != "" else str(uuid4())
         self.alpha: float = alpha
+        self.gamma: float = gamma
         self.epsilon: float = epsilon
         
         # Q-learning table

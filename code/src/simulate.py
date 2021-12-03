@@ -33,6 +33,8 @@ def play_round(sellers: List[Seller], buyers: List[Buyer], Verbose: bool = False
         
         # Get a random number of sellers to present to the buyer
         k = rd.randint(0, NB_SELLERS)
+        # TODO
+        # k = NB_SELLERS
         idx_sellers = rd.sample(range(NB_SELLERS), k=k)
         
         for idx_seller in idx_sellers:
