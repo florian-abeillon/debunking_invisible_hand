@@ -1,13 +1,26 @@
 """ display/display_agents """
 
-from typing import List
+from typing import Callable, List
 
-import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from agents import Agent
 from agents.utils import get_avg_q_table
+from matplotlib import pyplot as plt
 from src.utils import update_epsilon
+
+
+def plot_avg(agents: List[Agent], plot_fct: Callable, extract_from_hist: Callable, **kwargs) -> None:
+    """ Display average budget fluctuations over buyers """
+    history_concat = np.array([
+        [ 
+            extract_from_hist(hist_round, agent)
+            for hist_round in agent.get_history(**kwargs)
+        ]
+        for agent in agents
+    ])
+    history_mean = history_concat.mean(axis=0)
+    plot_fct(history_mean)
 
 
 def plot_q_table(a: np.array, title: str = "") -> None:
@@ -17,13 +30,13 @@ def plot_q_table(a: np.array, title: str = "") -> None:
         cmap='jet_r', 
         cbar=True
     )
+    kwargs = { 'title': title } if title else {}
     fig.set(
         xlabel="Quantity",
-        ylabel="Price"
+        ylabel="Price",
+        **kwargs
     )
     fig.invert_yaxis()
-    if title:
-        fig.set(title=title)
     plt.show()
 
 
@@ -67,3 +80,4 @@ def plot_epsilon(epsilon: float, size_unk: int, nb_rounds: int) -> None:
     )
     fig.lines[1].set_linestyle("--")
     fig.lines[2].set_linestyle("--")
+    plt.show()

@@ -4,13 +4,14 @@ import random as rd
 from typing import List, Tuple, Union
 
 import numpy as np
-import pandas as pd
+import seaborn as sns
 from agents.Agent import Agent
-from agents.constants import PRICE_MAX, PRICE_MIN, QTY_MAX, QTY_MIN
-from agents.Seller.constants import CURIOSITY, MEMORY, PRICE_PROD
+from agents.constants import (CURIOSITY_SELLER, MEMORY, PRICE_MAX, PRICE_MIN,
+                              PRICE_PROD, QTY_MAX, QTY_MIN)
 from agents.Seller.utils import get_q_table, get_q_table_size
 from display import plot_q_table
 from display.display_sellers import plot_variations
+from matplotlib import pyplot as plt
 
 Q_TABLE = get_q_table(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
@@ -38,7 +39,7 @@ class Seller(Agent):
     def __init__(self,  
                  price_prod: int = PRICE_PROD, 
                  alpha: float = MEMORY, 
-                 epsilon: float = CURIOSITY,
+                 epsilon: float = CURIOSITY_SELLER,
                  stochastic: bool = False,
                  name: Union[str, int] = ""):
 
@@ -87,23 +88,28 @@ class Seller(Agent):
         """ Display profit fluctuations """
         plot_variations(self.get_history(), value='profit', price_prod=self.price_prod)
     
-    # TODO: Un-convert from pandas + Change transparency
     def plot_history(self) -> None:
         """ Display sales history (quantity sold over price) """
-        df_history = pd.DataFrame([
-            ( price, sum(sales) ) for _, price, sales in self.get_history()
-        ])
-        df_history.plot(
-            0, 
-            1, 
-            kind='scatter', 
-            xlim=[ PRICE_MIN, PRICE_MAX ],
-            xlabel="Selling price",
-            ylabel="Number of sales",
-            c=df_history.index, 
-            colormap='jet',
-            colorbar=True
+        history = self.get_history()
+
+        prices, nb_sales = [], []
+        for _, price, sales in history:
+            prices.append(price)
+            nb_sales.append(sum(sales))
+
+        fig = sns.scatterplot(
+            x=nb_sales,
+            y=prices,
+            hue=list(range(len(history))),
+            palette='jet_r',
+            alpha=0.2
         )
+        fig.set(
+            xlim=[ 1, 100 ],
+            xlabel="Selling price",
+            ylabel="Number of sales"
+        )
+        plt.show()
         
     def plot_q_table(self) -> None:
         """ Display heatmap of learnt Q-table """

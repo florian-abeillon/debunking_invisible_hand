@@ -1,17 +1,15 @@
 """ agents/Buyer/Buyer """
 
 import random as rd
-from collections import defaultdict
 from typing import List, Tuple, Union
 
 import numpy as np
 import plotly.graph_objects as go
 from agents.Agent import Agent
-from agents.Buyer.constants import (BUDGET, CURIOSITY, MEMORY, MYOPIA, PENALTY,
-                                    RISK_TOLERANCE)
 from agents.Buyer.utils import get_q_table, get_q_table_size
-from agents.constants import (BUDGET_MAX, BUDGET_MIN, PRICE_MAX, PRICE_MIN,
-                              QTY_MAX)
+from agents.constants import (BUDGET, BUDGET_MAX, BUDGET_MIN, CURIOSITY_BUYER,
+                              MEMORY, MYOPIA, PENALTY, PRICE_MAX, PRICE_MIN,
+                              QTY_MAX, RISK_TOLERANCE)
 from display.display_buyers import (plot_budget, plot_demand_curve,
                                     plot_nb_purchases, plot_sub_q_tables,
                                     plot_w_slider)
@@ -43,7 +41,7 @@ class Buyer(Agent):
                  budget: int = BUDGET, 
                  alpha: float = MEMORY, 
                  gamma: float = RISK_TOLERANCE, 
-                 epsilon: float = CURIOSITY,
+                 epsilon: float = CURIOSITY_BUYER,
                  myopia: float = MYOPIA,
                  penalty: float = PENALTY,
                  stochastic: bool = False,
@@ -75,6 +73,12 @@ class Buyer(Agent):
             
             
             
+    def get_budget(self) -> int:
+        return self.budget_left
+
+    def get_nb_purchases(self) -> int:
+        return sum([ transac[2] for transac in self.get_history()[-1] ])
+
     def get_history(self, non_zero: bool = False) -> list:
         # To return history of actual purchases (when at least one good has been purchased)
         if non_zero:
@@ -134,9 +138,9 @@ class Buyer(Agent):
         """ Display heatmap of learnt Q-table, for each budget """
         plot_sub_q_tables(self.get_q_table())
 
-    def plot_demand_curve(self) -> None:
+    def plot_demand_curve(self) -> tuple:
         """ Display demand curve from learnt Q-table, for each budget """
-        plot_demand_curve(self.get_q_table())
+        return plot_demand_curve(self.get_q_table())
 
     
     

@@ -2,10 +2,11 @@
 
 from typing import List, Tuple, Union
 
-import matplotlib.pyplot as plt
-import numpy as np
 import seaborn as sns
-from agents.Seller.constants import PRICE_PROD
+from agents.constants import PRICE_PROD
+from matplotlib import pyplot as plt
+
+from display.display_agents import plot_avg
 
 
 def plot_variations(history: List[Tuple[int, int, List[int]]], 
@@ -28,10 +29,8 @@ def plot_variations(history: List[Tuple[int, int, List[int]]],
         func = lambda qty_prod, price, sales: qty_prod
         y_label = "Produced quantity"
     else:
-        if avg:
-            func = lambda qty_prod, price, sales: price * sales - qty_prod * price_prod
-        else:
-            func = lambda qty_prod, price, sales: price * sum(sales) - qty_prod * price_prod
+        sum_or_not_sum = lambda sales: sales if avg else sum(sales)
+        func = lambda qty_prod, price, sales: price * sum_or_not_sum(sales) - qty_prod * price_prod
         y_label = "Profit"
 
     if avg:
@@ -53,13 +52,7 @@ def plot_variations(history: List[Tuple[int, int, List[int]]],
 
 def plot_avg_variations(sellers: list, value: Union[str, List[str]] = [ 'price', 'qty', 'profit' ]) -> None:
     """ Displays price/qty/profit fluctuations across buyers """
-    history_concat = np.array([ 
-        [
-            ( qty_prod, price, sum(sales) )
-            for qty_prod, price, sales in seller.get_history()
-        ]        
-        for seller in sellers 
-    ])
-    history_mean = history_concat.mean(axis=0)
-    plot_variations(history_mean, value=value, avg=True)
+    extract_from_hist = lambda hist_round, _: ( hist_round[0], hist_round[1], sum(hist_round[2]) )
+    plot_value = lambda history: plot_variations(history, value=value, avg=True)
+    plot_avg(sellers, plot_fct=plot_value, extract_from_hist=extract_from_hist)
     

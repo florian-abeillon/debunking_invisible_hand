@@ -1,21 +1,23 @@
 """ display/display_buyers """
 
-from typing import List, Tuple, Union
+from typing import List
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import seaborn as sns
-from agents.Buyer.constants import BUDGET
-from agents.constants import PRICE_MAX, PRICE_MIN, QTY_MAX
+from agents.constants import BUDGET, PRICE_MAX, PRICE_MIN
 from agents.utils import get_avg_q_table
+from matplotlib import pyplot as plt
+from matplotlib.widgets import Slider
+
+from display.display_agents import plot_avg
 
 
-def plot_w_slider(frames = List[go.Frames], x_label: str = "", y_label: str = ""):
+def plot_w_slider(frames = List[go.Frames], x_label: str = "", y_label: str = "") -> None:
     """ Plot Plotly figures with a slider """
 
-    kwargs = {
+    layout = {
         'sliders': [{ 'steps': [
             {
                 'args': [
@@ -35,12 +37,12 @@ def plot_w_slider(frames = List[go.Frames], x_label: str = "", y_label: str = ""
         ]}]
     }
     if x_label:
-        kwargs['xaxis'] = { 'title': x_label }
+        layout['xaxis'] = { 'title': x_label }
     if y_label:
-        kwargs['yaxis'] = { 'title': y_label }
+        layout['yaxis'] = { 'title': y_label }
 
     fig = go.Figure(data=frames[0].data, frames=frames)
-    fig.update_layout(**kwargs)
+    fig.update_layout(**layout)
     fig.show()
 
 
@@ -71,26 +73,48 @@ def plot_avg_sub_q_tables(buyers: list) -> None:
     
 
 
-def plot_demand_curve(q_table: np.array) -> None:
+def plot_demand_curve(q_table: np.array) -> tuple:
     """ Display demand curve from learnt Q-table, for each budget """
-    prices = list(range(PRICE_MIN, PRICE_MAX + 1))
-    frames = [
-        go.Frame(
-            data=go.Scatter(
-                x=np.argmax(sub_q_table, axis=1), 
-                y=prices
-            ), 
-            layout=go.Layout(yaxis={ 'range': [ 0, QTY_MAX ] }),        # TODO: Put everything on the same scale
-            name=i
-        )
-        for i, sub_q_table in enumerate(q_table)
+
+    demand = [
+        np.argmax(sub_q_table, axis=1)
+        for sub_q_table in q_table
     ]
-    plot_w_slider(frames, x_label="Quantity", y_label="Price")
+    prices = list(range(PRICE_MIN, PRICE_MAX + 1))
+    
+    fig = plt.figure()
+    plt.subplots_adjust(bottom=0.25)
+    ax = fig.subplots()
+    ax.set_xlabel("Quantity")
+    ax.set_ylabel("Price")
+    p, = ax.plot(
+        demand[BUDGET], 
+        prices, 
+        'y'
+    )
+    
+    ax_slide = plt.axes([ 0.25, 0.1, 0.65, 0.03 ])
+    slider = Slider(
+        ax_slide, 
+        'Budget',
+        0, 
+        BUDGET, 
+        valinit=BUDGET, 
+        valstep=1
+    )
+
+    def update_slider(_):
+        budget = slider.val
+        p.set_xdata(demand[budget])
+        fig.canvas.draw()
+    
+    plt.show()
+    return slider, update_slider
 
 
-def plot_avg_demand_curve(buyers: list) -> None:
+def plot_avg_demand_curve(buyers: list) -> tuple:
     """ Display average demand curve from learnt Q-tables, for each budget """
-    plot_demand_curve(get_avg_q_table(buyers))
+    return plot_demand_curve(get_avg_q_table(buyers))
 
 
 
@@ -117,15 +141,8 @@ def plot_budget(history_budget: List[int], budget: int = BUDGET) -> None:
 
 def plot_avg_budget(buyers: list, non_zero: bool = True) -> None:
     """ Display average budget fluctuations over buyers """
-    history_budget_concat = np.array([
-        [ 
-            hist_round[-1][0] if hist_round else buyer.budget 
-            for hist_round in buyer.get_history(non_zero=non_zero)
-        ]
-        for buyer in buyers
-    ])
-    history_budget_mean = history_budget_concat.mean(axis=0)
-    plot_budget(history_budget_mean)
+    extract_from_hist = lambda hist_round, buyer: hist_round[-1][0] if hist_round else buyer.budget 
+    plot_avg(buyers, plot_fct=plot_budget, extract_from_hist=extract_from_hist, non_zero=non_zero)
 
 
 
@@ -144,12 +161,5 @@ def plot_nb_purchases(history_nb_purchases: List[int]) -> None:
 
 def plot_avg_nb_purchases(buyers: list) -> None:
     """ Display average budget fluctuations over buyers """
-    history_nb_purchases_concat = np.array([
-        [ 
-            sum([ transac[2] for transac in hist_round ])
-            for hist_round in buyer.get_history(non_zero=True)
-        ]
-        for buyer in buyers
-    ])
-    history_nb_purchases_mean = history_nb_purchases_concat.mean(axis=0)
-    plot_nb_purchases(history_nb_purchases_mean)
+    extract_from_hist = lambda hist_round, _: sum([ transac[2] for transac in hist_round ])
+    plot_avg(buyers, plot_fct=plot_nb_purchases, extract_from_hist=extract_from_hist, non_zero=True)
