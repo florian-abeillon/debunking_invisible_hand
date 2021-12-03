@@ -1,16 +1,20 @@
 """ agents/Buyer/Buyer """
 
 import random as rd
+from collections import defaultdict
 from typing import List, Tuple, Union
 
 import numpy as np
+import plotly.graph_objects as go
 from agents.Agent import Agent
 from agents.Buyer.constants import (BUDGET, CURIOSITY, MEMORY, MYOPIA, PENALTY,
                                     RISK_TOLERANCE)
 from agents.Buyer.utils import get_q_table, get_q_table_size
 from agents.constants import (BUDGET_MAX, BUDGET_MIN, PRICE_MAX, PRICE_MIN,
                               QTY_MAX)
-from src.utils import plot_q_table
+from display.display_buyers import (plot_budget, plot_demand_curve,
+                                    plot_nb_purchases, plot_sub_q_tables,
+                                    plot_w_slider)
 
 Q_TABLE = get_q_table(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
@@ -84,44 +88,55 @@ class Buyer(Agent):
         return super().get_history()
     
     
+
+    def plot_budget(self, non_zero: bool = True) -> None:
+        """ Display remaining budget variation over rounds """
+        history_budget = [ 
+            hist_round[-1][0] if hist_round else self.budget 
+            for hist_round in self.get_history(non_zero=non_zero)
+        ]
+        plot_budget(history_budget, budget=self.budget)
+
+    def plot_nb_purchases(self) -> None:
+        """ Display number of purchases variation over rounds """
+        history_nb_purchases = [ 
+            sum([ transac[2] for transac in hist_round ])
+            for hist_round in self.get_history(non_zero=True)
+        ]
+        plot_nb_purchases(history_nb_purchases)
     
-    # TODO
-    def plot_history(self) -> None:
-        """ Displays purchases history (quantity purchased over price) """
-        pass
-        # df_history = pd.DataFrame([
-        #     [ ( price, qty ) for _, price, qty in round_hist ]
-        #     for round_hist in self.get_history()
-        # ])
-        # df_history.plot(
-        #     0, 
-        #     1, 
-        #     kind='scatter', 
-        #     xlim=[ PRICE_MIN, PRICE_MAX ],
-        #     xlabel="Price",
-        #     ylabel="Number of purchases",
-        #     c=df_history.index, 
-        #     colormap='jet',
-        #     colorbar=True
-        # )
+    def plot_history(self, non_zero: bool = True) -> None:
+        """ Display purchases history (quantity purchased over price), for each budget """
         
-    def plot_sub_q_tables(self, budgets: Union[int, List[int]] = []) -> None:
-        """ Displays heatmap of learnt Q-table, for each budget """
-        if not budgets:
-            budgets = self.get_q_table().columns
-        elif type(budgets) == int:
-            budgets = [budgets]
+        history = self.get_history(non_zero=non_zero)
+        d = { i: [] for i in range(self.budget + 1)}
+        for i, hist_round in enumerate(history):
+            for budget, price, qty in hist_round:
+                d[budget].append(( i, price, qty ))
+        d = { budget: np.array(transac) for budget, transac in d.items() }
+        
+        frames = [
+            go.Frame(
+                data=go.Scatter(
+                    x=transac[:, 2], 
+                    y=transac[:, 1],
+                    mode='markers',
+                    marker_color=transac[:, 0]
+                ) if np.any(transac) else go.Scatter(x=[], y=[]),
+                name=str(budget)
+            )
+            for budget, transac in d.items()
+        ]
+        plot_w_slider(frames, x_label="Quantity purchased", y_label="Price offered")
+        
+        
+    def plot_sub_q_tables(self) -> None:
+        """ Display heatmap of learnt Q-table, for each budget """
+        plot_sub_q_tables(self.get_q_table())
 
-        for budget in budgets:
-            sub_q_table = self.get_q_table().loc[budget].copy(deep=True)
-            sub_q_table.loc[:, 1:100] = sub_q_table.loc[:, 1:100][sub_q_table.loc[:, 1:100]!=0.]
-            sub_q_table.dropna(axis=1, how='all')
-            plot_q_table(sub_q_table)
-
-    # TODO
     def plot_demand_curve(self) -> None:
-        """ Displays demand curve from learnt Q-table """
-        pass
+        """ Display demand curve from learnt Q-table, for each budget """
+        plot_demand_curve(self.get_q_table())
 
     
     

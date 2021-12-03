@@ -9,6 +9,8 @@ from agents.Agent import Agent
 from agents.constants import PRICE_MAX, PRICE_MIN, QTY_MAX, QTY_MIN
 from agents.Seller.constants import CURIOSITY, MEMORY, PRICE_PROD
 from agents.Seller.utils import get_q_table, get_q_table_size
+from display import plot_q_table
+from display.display_sellers import plot_variations
 
 Q_TABLE = get_q_table(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
@@ -52,18 +54,16 @@ class Seller(Agent):
             self.price_prod = min(PRICE_MAX, max(PRICE_MIN, int(price_prod)))
             
         # Initialize randomly first selling price
-        self.qty_prod: int = rd.randint(QTY_MIN, QTY_MAX)
         self.price_sell: int = rd.randint(PRICE_MIN, PRICE_MAX)
-        
+        self.qty_prod: int = rd.randint(QTY_MIN, QTY_MAX)
         self.qty_left: int = self.qty_prod
         
         # Q-learning table
         self.q_table: np.array = np.copy(Q_TABLE)
         self.size_unk: int = Q_TABLE_SIZE
 
-        # history is a list of triples ( investment, price, List[qty sold] ) -> one triple for every round
-        investment = self.qty_prod * self.price_prod
-        self.history: List[Tuple[int, List[int]]] = [ ( investment, self.price_sell, [] ) ]
+        # history is a list of triples ( qty_prod, price, List[qty sold] ) -> one triple for every round
+        self.history: List[Tuple[int, int, List[int]]] = [ ( self.qty_prod, self.price_sell, [] ) ]
             
   
         
@@ -76,28 +76,20 @@ class Seller(Agent):
 
     
     def plot_price(self) -> None:
-        """ Displays price fluctuations """
-        prices = pd.Series([ 
-            price for _, price, _ in self.get_history() 
-        ])
-        prices.plot(
-            xlabel="Rounds",
-            ylabel="Selling price"
-        )
+        """ Display price fluctuations """
+        plot_variations(self.get_history(), value='price', price_prod=self.price_prod)
+    
+    def plot_qty(self) -> None:
+        """ Display produced quantity fluctuations """
+        plot_variations(self.get_history(), value='qty', price_prod=self.price_prod)
         
     def plot_profit(self) -> None:
-        """ Displays profit variations """
-        profits = pd.Series([ 
-            price * sum(sales) - investment 
-            for investment, price, sales in self.get_history() 
-        ])
-        profits.plot(
-            xlabel="Rounds",
-            ylabel="Profit"
-        )
+        """ Display profit fluctuations """
+        plot_variations(self.get_history(), value='profit', price_prod=self.price_prod)
     
+    # TODO: Un-convert from pandas + Change transparency
     def plot_history(self) -> None:
-        """ Displays sales history (quantity sold over price) """
+        """ Display sales history (quantity sold over price) """
         df_history = pd.DataFrame([
             ( price, sum(sales) ) for _, price, sales in self.get_history()
         ])
@@ -112,11 +104,15 @@ class Seller(Agent):
             colormap='jet',
             colorbar=True
         )
+        
+    def plot_q_table(self) -> None:
+        """ Display heatmap of learnt Q-table """
+        plot_q_table(self.get_q_table())
     
     
     
     def sell(self, qty: int) -> None:
-        """ Sell qty goods at self.price_sell """
+        """ Sell 'qty' goods at 'self.price_sell' """
         assert qty <= self.qty_left, f"Seller {self.name} is trying to sell {qty} goods, but it has only {self.qty_left} left!"
         self.qty_left -= qty
         self.history[-1][2].append(qty)
@@ -156,5 +152,4 @@ class Seller(Agent):
         # Give buyers their budget for next round
         self.qty_left = self.qty_prod        
         # Prepare a new list for next round
-        investment = self.qty_prod * self.price_prod
-        self.history.append(( investment, self.price_sell, [] ))
+        self.history.append(( self.qty_prod, self.price_sell, [] ))

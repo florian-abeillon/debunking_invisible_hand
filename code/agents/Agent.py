@@ -4,7 +4,7 @@ from typing import Union
 from uuid import uuid4
 
 import numpy as np
-from src.utils import plot_q_table, update_epsilon
+from src.utils import update_epsilon
 
 
 class Agent:
@@ -55,10 +55,6 @@ class Agent:
     def plot_history(self) -> None:
         """ Displays transactions history """
         raise NotImplementedError
-        
-    def plot_q_table(self) -> None:
-        """ Displays heatmap of learnt Q-table """
-        plot_q_table(self.get_q_table())
         
 
 
