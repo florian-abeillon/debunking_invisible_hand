@@ -101,14 +101,20 @@ class Seller(Agent):
             nb_sales.append(sum(sales))
 
         fig = sns.scatterplot(
-            x=nb_sales,
-            y=prices,
+            x=prices,
+            y=nb_sales,
             hue=list(range(len(history))),
             palette='jet_r',
             alpha=0.2
         )
+        fig_baseline = sns.lineplot(
+            x=[ self.price_prod, self.price_prod ], 
+            y=[ 0, np.max(nb_sales) ]
+        )
+
         fig.set(
-            xlim=[ 1, 100 ],
+            xlim=[ PRICE_MIN, PRICE_MAX ],
+            ylim=[ 0, 100 / PRICE_MIN ],
             xlabel="Selling price",
             ylabel="Number of sales"
         )

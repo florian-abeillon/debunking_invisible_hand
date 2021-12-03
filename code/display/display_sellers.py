@@ -2,6 +2,7 @@
 
 from typing import List, Tuple, Union
 
+import numpy as np
 import seaborn as sns
 from agents.constants import PRICE_PROD
 from matplotlib import pyplot as plt
@@ -36,13 +37,24 @@ def plot_variations(history: List[Tuple[int, int, List[int]]],
     if avg:
         y_label = f"Average {y_label.lower()}"
 
+    n = len(history)
+    y = [ 
+        func(qty_prod, price, sales) 
+        for qty_prod, price, sales in history
+    ]
     fig = sns.lineplot(
-        x=range(len(history)), 
-        y=[ 
-            func(qty_prod, price, sales) 
-            for qty_prod, price, sales in history
+        x=range(n), 
+        y=y
+    )
+    n_mean = n // 100
+    fig_mean = sns.lineplot(
+        x=[ (i + 0.5) * n_mean for i in range(100) ],
+        y=[
+            np.mean(y[i * n_mean:(i + 1) * n_mean])
+            for i in range(100)
         ]
     )
+
     fig.set(
         xlabel="Rounds",
         ylabel=y_label
