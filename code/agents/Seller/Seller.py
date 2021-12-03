@@ -94,6 +94,8 @@ class Seller(Agent):
     def plot_history(self) -> None:
         """ Display sales history (quantity sold over price) """
         history = self.get_history()
+        x_lim = len(history)
+        y_lim = 100 / PRICE_MIN
 
         prices, nb_sales = [], []
         for _, price, sales in history:
@@ -103,18 +105,18 @@ class Seller(Agent):
         fig = sns.scatterplot(
             x=prices,
             y=nb_sales,
-            hue=list(range(len(history))),
+            hue=list(range(x_lim)),
             palette='jet_r',
-            alpha=0.2
+            alpha=1 - min(0.8, x_lim / 100000)
         )
         fig_baseline = sns.lineplot(
             x=[ self.price_prod, self.price_prod ], 
-            y=[ 0, np.max(nb_sales) ]
+            y=[ 0, y_lim ]
         )
 
         fig.set(
             xlim=[ PRICE_MIN, PRICE_MAX ],
-            ylim=[ 0, 100 / PRICE_MIN ],
+            ylim=[ 0, y_lim ],
             xlabel="Selling price",
             ylabel="Number of sales"
         )

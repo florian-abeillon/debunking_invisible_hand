@@ -80,6 +80,13 @@ def plot_demand_curve(q_table: np.array) -> tuple:
         np.argmax(sub_q_table, axis=1)
         for sub_q_table in q_table
     ]
+    demand_lim = [
+        [ 
+            budget // price
+            for price in range(PRICE_MIN, PRICE_MAX + 1) 
+        ]
+        for budget in range(BUDGET + 1)
+    ]
     prices = list(range(PRICE_MIN, PRICE_MAX + 1))
     
     fig = plt.figure()
@@ -87,10 +94,16 @@ def plot_demand_curve(q_table: np.array) -> tuple:
     ax = fig.subplots()
     ax.set_xlabel("Quantity")
     ax.set_ylabel("Price")
+    
     p, = ax.plot(
         demand[BUDGET], 
         prices, 
         'y'
+    )
+    lim, = ax.plot(
+        demand_lim[BUDGET],
+        prices, 
+        'y1'
     )
     
     ax_slide = plt.axes([ 0.25, 0.1, 0.65, 0.03 ])
@@ -106,6 +119,7 @@ def plot_demand_curve(q_table: np.array) -> tuple:
     def update_slider(_):
         budget = slider.val
         p.set_xdata(demand[budget])
+        lim.set_xdata(demand_lim[budget])
         fig.canvas.draw()
     
     plt.show()
@@ -118,26 +132,44 @@ def plot_avg_demand_curve(buyers: list) -> tuple:
 
 
 
-def plot_budget(history_budget: List[int], budget: int = BUDGET) -> None:
+def plot_variations(history_variations: List[int], y_label: str = "") -> None:
     """ Display budget fluctuations """
-    x_lim = len(history_budget)
+    x_lim = len(history_variations)
+    x_step = x_lim // 100
 
     fig = sns.lineplot(
         x=range(x_lim), 
-        y=history_budget
+        y=history_variations
     )
+    fig_mean = sns.lineplot(
+        x=[ (i + 0.5) * x_step for i in range(100) ],
+        y=[
+            np.mean(history_variations[i * x_step:(i + 1) * x_step])
+            for i in range(100)
+        ]
+    )
+
+    y_min, y_max = np.min(history_variations), np.max(history_variations)
+    y_lim = [
+        0 if y_min > 0 else 1.1 * y_min,
+        1.1 * y_max if y_max > 0 else 0
+    ]
+    fig.set(
+        ylim=y_lim,
+        xlabel="Rounds",
+        ylabel=y_label
+    )
+
+
+def plot_budget(history_budget: List[int], budget: int = BUDGET) -> None:
+    """ Display budget fluctuations """
+    plot_variations(history_budget, y_label="Budget left at the end of a round")
     fig_baseline = sns.lineplot(
-        x=[ 0, x_lim ], 
+        x=[ 0, len(history_budget) ], 
         y=[ budget, budget ]
     )
-
-    fig.set(
-        xlabel="Rounds",
-        ylabel="Budget left at the end of a round"
-    )
-    fig.lines[1].set_linestyle("--")
+    fig_baseline.lines[2].set_linestyle("--")
     plt.show()
-
 
 def plot_avg_budget(buyers: list, non_zero: bool = True) -> None:
     """ Display average budget fluctuations over buyers """
@@ -148,16 +180,8 @@ def plot_avg_budget(buyers: list, non_zero: bool = True) -> None:
 
 def plot_nb_purchases(history_nb_purchases: List[int]) -> None:
     """ Display budget fluctuations """
-    fig = sns.lineplot(
-        x=range(len(history_nb_purchases)), 
-        y=history_nb_purchases
-    )
-    fig.set(
-        xlabel="Rounds",
-        ylabel="Number of purchases"
-    )
+    plot_variations(history_nb_purchases, y_label="Number of purchases")
     plt.show()
-
 
 def plot_avg_nb_purchases(buyers: list) -> None:
     """ Display average budget fluctuations over buyers """
