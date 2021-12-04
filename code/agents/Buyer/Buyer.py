@@ -131,6 +131,8 @@ class Buyer(Agent):
             )
             for budget, transac in d.items()
         ]
+
+        frames.reverse()
         plot_w_slider(frames, x_label="Quantity purchased", y_label="Price offered")
         
         

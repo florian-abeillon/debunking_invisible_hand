@@ -64,6 +64,7 @@ def plot_sub_q_tables(q_table: np.array) -> None:
         )
         frames.append(go.Frame(data=heatmap, name=i))
 
+    frames.reverse()
     plot_w_slider(frames, x_label="Quantity purchased", y_label="Price offered")
     
 
