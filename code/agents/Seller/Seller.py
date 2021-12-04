@@ -14,6 +14,7 @@ from agents.Seller.utils import get_q_table, get_q_table_size
 from display import plot_q_table
 from display.display_sellers import plot_variations
 from matplotlib import pyplot as plt
+plt.style.use('ggplot')
 
 Q_TABLE = get_q_table(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
@@ -127,6 +128,7 @@ class Seller(Agent):
             xlabel="Selling price",
             ylabel="Number of sales"
         )
+        plt.legend(title="Round")
         plt.show()
         
     def plot_q_table(self) -> None:
