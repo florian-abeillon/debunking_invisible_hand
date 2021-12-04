@@ -6,9 +6,10 @@ from typing import List, Tuple, Union
 import numpy as np
 import seaborn as sns
 from agents.Agent import Agent
-from agents.constants import (CURIOSITY_SELLER, MEMORY_SELLER, PRICE_MAX,
-                              PRICE_MIN, PRICE_PROD, QTY_MAX, QTY_MIN,
-                              RISK_TOLERANCE_SELLER)
+from agents.constants import (BANDIT_BREAKPOINT_SELLER,
+                              BANDIT_STEEPNESS_SELLER, CURIOSITY_SELLER,
+                              MEMORY_SELLER, PRICE_MAX, PRICE_MIN, PRICE_PROD,
+                              QTY_MAX, QTY_MIN, RISK_TOLERANCE_SELLER)
 from agents.Seller.utils import get_q_table, get_q_table_size
 from display import plot_q_table
 from display.display_sellers import plot_variations
@@ -28,6 +29,8 @@ class Seller(Agent):
         * alpha: Q-learning alpha factor, representing agent's memory
         * gamma: Q-learning gamma factor, representing agent's risk aversity
         * epsilon: e-greedy policy e factor, representing agent's curiosity
+        * bandit_steepness: Steepness of change exploration -> exploitation in dynamic adjustment of epsilon
+        * bandit_breakpoint: Duration of exploration over exploitation in dynamic adjustment of epsilon
         * price_prod: Price of producing one unit of good
         * qty_prod: Quantity of goods produced (to be learned as we go along)
         * price_sell: Price at which the agent will try to sell its goods (to be learned as we go along)
@@ -43,10 +46,14 @@ class Seller(Agent):
                  alpha: float = MEMORY_SELLER, 
                  gamma: float = RISK_TOLERANCE_SELLER, 
                  epsilon: float = CURIOSITY_SELLER,
+                 bandit_steepness: float = BANDIT_STEEPNESS_SELLER,
+                 bandit_breakpoint: float = BANDIT_BREAKPOINT_SELLER,
                  stochastic: bool = False,
                  name: Union[str, int] = ""):
 
         super().__init__(alpha, gamma, epsilon, name=name)
+        self.bandit_steepness = bandit_steepness
+        self.bandit_breakpoint = bandit_breakpoint
         
         assert PRICE_MIN <= price_prod <= PRICE_MAX, f"Production price price_prod={price_prod} is not within the price bounds PRICE_MIN={PRICE_MIN} and PRICE_MAX={PRICE_MAX}"
         self.price_prod: int = price_prod
@@ -157,7 +164,7 @@ class Seller(Agent):
             print("------------------------------------\n")
         
         # Get next price with e-greedy policy
-        if rd.random() < self.epsilon_updated():
+        if rd.random() < self.threshold_bandit():
             # Exploration: Try out a random pair ( price_sell, qty_prod )
             self.price_sell = rd.randint(PRICE_MIN, PRICE_MAX)
             self.qty_prod = rd.randint(QTY_MIN, QTY_MAX)

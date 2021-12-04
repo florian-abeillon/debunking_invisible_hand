@@ -2,9 +2,8 @@
 
 import math
 
-from src.constants import BREAKPOINT_EPSILON, STEEPNESS_EPSILON
 
-
-def update_epsilon(proportion: float, epsilon: float, steepness: int = STEEPNESS_EPSILON, break_point: float = BREAKPOINT_EPSILON) -> float:
+def update_curiosity(proportion: float, epsilon: float, steepness: int, break_point: float) -> float:
     """ Computes next value of curiosity (epsilon), depending on proportion frac """
-    return epsilon + (1 - epsilon) / (1 + math.exp(- steepness * (proportion - break_point)))
+    curiosity = 1 / (1 + math.exp(- steepness * (proportion - break_point)))
+    return epsilon + (1 - epsilon) * curiosity

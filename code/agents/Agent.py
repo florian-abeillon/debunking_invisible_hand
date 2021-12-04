@@ -4,7 +4,7 @@ from typing import Union
 from uuid import uuid4
 
 import numpy as np
-from src.utils import update_epsilon
+from src.utils import update_curiosity
 
 
 class Agent:
@@ -13,6 +13,9 @@ class Agent:
         * name: Unique identifier 
         * alpha: Q-learning alpha factor, representing agent's memory
         * gamma: Q-learning gamma factor, representing agent's risk aversity
+        * epsilon: e-greedy policy e factor, representing agent's curiosity
+        * bandit_steepness: Steepness of change exploration -> exploitation in dynamic adjustment of epsilon
+        * bandit_breakpoint: Duration of exploration over exploitation in dynamic adjustment of epsilon
         * epsilon: e-greedy policy e factor, representing agent's curiosity
         * q_table: Q-learning table
         * size_unk: Total number of cells to explore in q_table
@@ -30,6 +33,8 @@ class Agent:
         self.alpha: float = alpha
         self.gamma: float = gamma
         self.epsilon: float = epsilon
+        self.bandit_steepness: float = None    # To be set in child class
+        self.bandit_breakpoint: float = None   # To be set in child class
         
         # Q-learning table
         self.q_table: np.array = None           # To be set in child class
@@ -61,13 +66,13 @@ class Agent:
         
 
 
-    def epsilon_updated(self) -> float:
-        """ Returns epsilon factor dynamically adjusted """
+    def threshold_bandit(self) -> float:
+        """ Returns dynamically adjusted curiosity factor epsilon """
         # Compute epsilon, given the current state of exploration of the Q-table
-        epsilon = update_epsilon(self.proportion_unk, self.epsilon)
+        curiosity = update_curiosity(self.proportion_unk, self.epsilon, self.bandit_steepness, self.bandit_breakpoint)
         # Update the estimation of the number of cells yet to explore
-        self.proportion_unk = max(0, self.proportion_unk - epsilon / self.size_unk)
-        return epsilon 
+        self.proportion_unk = max(0, self.proportion_unk - curiosity / self.size_unk)
+        return curiosity 
 
 
     def learn(self) -> None:

@@ -7,7 +7,8 @@ import numpy as np
 import plotly.graph_objects as go
 from agents.Agent import Agent
 from agents.Buyer.utils import get_q_table, get_q_table_size
-from agents.constants import (BUDGET, BUDGET_MAX, BUDGET_MIN, CURIOSITY_BUYER,
+from agents.constants import (BANDIT_BREAKPOINT_BUYER, BANDIT_STEEPNESS_BUYER,
+                              BUDGET, BUDGET_MAX, BUDGET_MIN, CURIOSITY_BUYER,
                               MEMORY_BUYER, MYOPIA_BUYER, PENALTY_BUYER,
                               PRICE_MAX, PRICE_MIN, QTY_MAX,
                               RISK_TOLERANCE_BUYER)
@@ -28,6 +29,8 @@ class Buyer(Agent):
         * alpha: Q-learning alpha factor, representing agent's memory
         * gamma: Q-learning gamma factor, representing agent's risk aversity
         * epsilon: e-greedy policy e factor, representing agent's curiosity
+        * bandit_steepness: Steepness of change exploration -> exploitation in dynamic adjustment of epsilon
+        * bandit_breakpoint: Duration of exploration over exploitation in dynamic adjustment of epsilon
         * myopia: Factor representing agent's short-sightedness
         * penalty: Penalization factor when there are some budget leftovers at the end of the round
         * budget: Initial budget when starting round
@@ -43,6 +46,8 @@ class Buyer(Agent):
                  alpha: float = MEMORY_BUYER, 
                  gamma: float = RISK_TOLERANCE_BUYER, 
                  epsilon: float = CURIOSITY_BUYER,
+                 bandit_steepness: float = BANDIT_STEEPNESS_BUYER,
+                 bandit_breakpoint: float = BANDIT_BREAKPOINT_BUYER,
                  myopia: float = MYOPIA_BUYER,
                  penalty: float = PENALTY_BUYER,
                  stochastic: bool = False,
@@ -50,6 +55,8 @@ class Buyer(Agent):
 
         super().__init__(alpha, gamma, epsilon, name=name)
         
+        self.bandit_steepness = bandit_steepness
+        self.bandit_breakpoint = bandit_breakpoint
         self.myopia: float = myopia
         self.penalty: float = penalty
         
@@ -155,7 +162,7 @@ class Buyer(Agent):
         # * quantity * price shall be lower than budget (Buyer cannot buy goods for more than its budget)
         
         qty_lim = min(qty_left, self.budget_left // price)
-        if rd.random() < self.epsilon_updated():
+        if rd.random() < self.threshold_bandit():
             # Exploration: Try out a random quantity
             qty_to_buy = rd.randint(0, qty_lim)
         else:
@@ -198,7 +205,7 @@ class Buyer(Agent):
         
             # Update Q-table
             self.q_table[budget, idx_price(price), qty] *= 1 - self.alpha
-            self.q_table[budget, idx_price(price), qty] += self.alpha * (reward + self.gamma * potential_reward)     # TODO: Incentivize more to buy
+            self.q_table[budget, idx_price(price), qty] += self.alpha * (reward + self.gamma * potential_reward)
 
             if Verbose:
                 print(f"Q-value {budget, price, qty}: {q_value_before} -> {self.q_table[budget, idx_price(price), qty]}")
