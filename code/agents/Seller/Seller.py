@@ -148,7 +148,7 @@ class Seller(Agent):
         # Compute reward (profit)
         qty_sold = self.qty_prod - self.qty_left
         reward = qty_sold * self.price_sell - self.qty_prod * self.price_prod
-        potential_reward = 0    # QTY_MAX * (self.price_sell - self.price_prod)       # Does it make sense to add this as a potential reward? It will add this same value every time it goes to this cell
+        potential_reward = QTY_MAX * (self.price_sell - self.price_prod)
         
         if Verbose:
             q_value_before = self.q_table[idx_price(self.price_sell), idx_qty(self.qty_prod)]
