@@ -5,7 +5,7 @@ from typing import Callable, List, Tuple, Union
 import numpy as np
 import seaborn as sns
 from agents import Agent
-from agents.constants import CURIOSITY_BUYER, CURIOSITY_SELLER
+from agents.constants import CURIOSITY_BUYER, CURIOSITY_SELLER, PLOT_NAME
 from agents.utils import get_avg_q_table
 from matplotlib import pyplot as plt
 
@@ -62,6 +62,7 @@ def plot_variations(y: list,
         ylabel=y_label
     )
     plt.legend([ "Running average", "Confidence interval (68%)", "Range of values" ])
+    plt.savefig(f'plots/{PLOT_NAME}_{y_label}.png')
     plt.show()
 
 
@@ -97,12 +98,13 @@ def plot_q_table(a: np.array, title: str = "") -> None:
     )
     kwargs = { 'title': title } if title else {}
     fig.set(
-        title="Learnt Q-table",
+        title="Learned Q-table",
         xlabel="Quantity",
         ylabel="Price",
         **kwargs
     )
     fig.invert_yaxis()
+    plt.savefig(f'plots/{PLOT_NAME}_q_table.png')
     plt.show()
 
 
@@ -141,7 +143,8 @@ def plot_curiosity(curiosity_values: List[float],
         xlim=( 0, x_lim ),
         ylim=( 0, 1 )
     )
-    plt.legend(labels=[ "Curiosity", "Epsilon (asymptot)" ])
+    plt.legend(labels=[ "Curiosity", "Epsilon (asymptote)" ])
+    plt.savefig(f'plots/{PLOT_NAME}_curiosity.png')
     plt.show()
 
 
