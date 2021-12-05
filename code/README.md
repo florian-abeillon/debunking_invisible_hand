@@ -9,7 +9,9 @@ And then just run
     python3 main.py
 
 to run a market simulation with the given parameters. Some graphs will be plotted at the end of the simulation.  
-You may change parameters in *src/constants.py* and *agents/constants.py* before running *main.py*.
+You may change parameters in *src/constants.py* and *agents/constants.py* before running *main.py*.  
+
+-> A notebook is provided in *notebooks/Test.ipynb* for a more interactive way to play with the emulated market.
 
 
 ## WHAT
