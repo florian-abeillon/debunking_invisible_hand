@@ -1,3 +1,5 @@
 **/.ipynb_checkpoints
 **/__pycache__
 .DS_STORE
+code/.prof_stats
+code/profile.txt
