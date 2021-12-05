@@ -54,7 +54,7 @@ def plot_variations(history: List[int],
         ]
     )
 
-    legend_labels = [ "Actual", "Average" ]
+    legend_labels = [ "Actual", "Running average" ]
 
     if value == 'budget':
         fig_baseline = sns.lineplot(
