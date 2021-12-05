@@ -16,7 +16,7 @@ dynamics within a complex system.
 ## The Model
 
 In our project, we model a market environment where two types of market agents interact. Every agent -- be it a buyer or a seller -- will try and maximize its own reward at every step.  
-Agents:
+
 * __Buyer__
     * __Reward__: Number of goods purchased
     * __Parameters__:
