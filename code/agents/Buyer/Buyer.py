@@ -13,7 +13,7 @@ from agents.constants import (BANDIT_BREAKPOINT_BUYER, BANDIT_STEEPNESS_BUYER,
                               RISK_TOLERANCE_BUYER)
 from display.display_agents import plot_curiosity
 from display.display_buyers import (plot_demand_curve, plot_history,
-                                    plot_sub_q_tables, plot_variations)
+                                    plot_sub_q_tables, plot_variations_buyers)
 
 Q_TABLE = get_q_table(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
@@ -114,13 +114,13 @@ class Buyer(Agent):
         """ 
             Display remaining budget variation over rounds 
         """
-        plot_variations(self.get_history(non_zero=non_zero), value='budget', budget=self.budget)
+        plot_variations_buyers(self.get_history(non_zero=non_zero), 'budget', agent=self)
 
-    def plot_nb_purchases(self) -> None:
+    def plot_purchases(self) -> None:
         """  
             Display number of purchases variation over rounds 
         """
-        plot_variations(self.get_history(non_zero=True), value='nb_purchases')
+        plot_variations_buyers(self.get_history(non_zero=True), 'purchases')
     
     def plot_history(self, non_zero: bool = True) -> None:
         """ 

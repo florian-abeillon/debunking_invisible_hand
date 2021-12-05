@@ -5,94 +5,52 @@ from typing import List, Tuple, Union
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import seaborn as sns
 from agents.constants import BUDGET, PRICE_MAX, PRICE_MIN
 from agents.utils import get_avg_q_table
 from matplotlib import pyplot as plt
 from matplotlib.widgets import Slider
 
-from display.display_agents import plot_avg, running_avg
+from display.display_agents import plot_avg, plot_variations
+
+UTILS = {
+    'budget': (
+        lambda hist_round, buyer: hist_round[-1][0] if hist_round else buyer.budget,
+        "Budget leftovers"
+    ),
+    'purchases': (
+        lambda hist_round, buyer: sum([ qty for _, _, qty in hist_round ]),
+         "Number of purchases"
+    )
+}
 
 
-def plot_variations(history: List[int], 
-                    value: Union[str, List[str]] = [ 'budget', 'nb_purchases' ],
-                    budget: int = BUDGET,
-                    avg: bool = False) -> None:
-    """ 
-        Display budget/nb_purchases fluctuations 
+def plot_variations_buyers(history: List[List[Tuple[int, int, int]]],
+                           value: str,
+                           agent: int = None) -> None:
     """
+        Display buyers fluctuations
+    """
+    assert value in [ 'budget', 'purchases' ], f"value={value} should be within [ 'budget', 'purchases' ]"
+    extract_fct, y_label = UTILS[value]
+    history = [ 
+        extract_fct(hist_round, agent)
+        for hist_round in history 
+    ]
+    plot_variations(history, y_label)
 
+
+def plot_avg_variations_buyers(buyers: list, 
+                               value: Union[str, List[str]] = [ 'budget', 'purchases' ],
+                               non_zero: bool = True) -> None:
+    """ 
+        Display average buyers fluctuations
+    """
     if type(value) == list:
         for v in value:
-            plot_variations(history, value=v, budget=budget, avg=avg)
+            plot_avg_variations_buyers(buyers, value=v, non_zero=True)
         return
-
-    assert value in [ 'budget', 'nb_purchases' ], f"value={value} should be within [ 'budget', 'nb_purchases' ]"
-    
-    if value == 'budget':
-        func = lambda hist_round: hist_round[-1][0] if hist_round else budget 
-        y_label = "Budget leftovers"
-    else:
-        func = lambda hist_round: sum([ qty for _, _, qty in hist_round ])
-        y_label = "Number of purchases"
-
-    x_lim = len(history)
-    y = history if avg else [ func(hist_round) for hist_round in history ]
-    # Plot fluctuations
-    fig = sns.lineplot(
-        x=range(x_lim), 
-        y=y
-    )
-
-    x_avg, y_avg = running_avg(y)
-    # Plot mean of fluctuations (with a 100th window)
-    fig_mean = sns.lineplot(
-        x=x_avg,
-        y=y_avg
-    )
-
-    legend_labels = [ "Actual", "Running average" ]
-
-    if value == 'budget':
-        fig_baseline = sns.lineplot(
-            x=[ 0, len(history) ], 
-            y=[ budget, budget ]
-        )
-        fig_baseline.lines[2].set_linestyle("--")
-        legend_labels.append("Initial value")
-
-    y_min, y_max = np.min(history), np.max(history)
-    y_lim = (
-        0 if y_min > 0 else 1.1 * y_min,
-        1.1 * y_max if y_max > 0 else 0
-    )
-    fig.set(
-        ylim=y_lim,
-        title=f"{y_label} over rounds",
-        xlabel="Rounds",
-        ylabel=y_label
-    )
-    plt.legend(labels=legend_labels)
-    plt.show()
-
-
-def plot_avg_budget(buyers: list, 
-                    non_zero: bool = True) -> None:
-    """ 
-        Display average budget fluctuations over buyers 
-    """
-    extract_from_hist = lambda hist_round, buyer: hist_round[-1][0] if hist_round else buyer.budget 
-    plot_value = lambda history: plot_variations(history, value='budget', avg=True)
-    plot_avg(buyers, plot_fct=plot_value, extract_from_hist=extract_from_hist, non_zero=non_zero)
-
-
-def plot_avg_nb_purchases(buyers: list) -> None:
-    """ 
-        Display average budget fluctuations over buyers 
-    """
-    extract_from_hist = lambda hist_round, _: sum([ transac[2] for transac in hist_round ])
-    plot_value = lambda history: plot_variations(history, value='nb_purchases', avg=True)
-    plot_avg(buyers, plot_fct=plot_value, extract_from_hist=extract_from_hist, non_zero=True)
+    assert value in [ 'budget', 'purchases' ], f"value={value} should be within [ 'budget', 'purchases' ]"
+    plot_avg(buyers, *UTILS[value], non_zero=non_zero)
 
 
 

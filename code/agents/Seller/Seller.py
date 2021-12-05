@@ -11,7 +11,7 @@ from agents.constants import (BANDIT_BREAKPOINT_SELLER,
                               QTY_MAX, QTY_MIN, RISK_TOLERANCE_SELLER)
 from agents.Seller.utils import get_q_table, get_q_table_size
 from display.display_agents import plot_curiosity, plot_q_table
-from display.display_sellers import plot_history, plot_variations
+from display.display_sellers import plot_history, plot_variations_sellers
 
 Q_TABLE = get_q_table(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
@@ -89,19 +89,25 @@ class Seller(Agent):
         """ 
             Display price fluctuations 
         """
-        plot_variations(self.get_history(), value='price')
+        plot_variations_sellers(self.get_history(), 'price')
     
     def plot_qty(self) -> None:
         """ 
             Display produced quantity fluctuations 
         """
-        plot_variations(self.get_history(), value='qty')
+        plot_variations_sellers(self.get_history(), 'qty')
         
     def plot_profit(self) -> None:
         """ 
             Display profit fluctuations 
         """
-        plot_variations(self.get_history(), value='profit', price_prod=self.price_prod)
+        plot_variations_sellers(self.get_history(), 'profit', price_prod=self.price_prod)
+        
+    def plot_sales(self) -> None:
+        """ 
+            Display sales fluctuations 
+        """
+        plot_variations_sellers(self.get_history(), 'sales')
     
     def plot_history(self) -> None:
         """ 

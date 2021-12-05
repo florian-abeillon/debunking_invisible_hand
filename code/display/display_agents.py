@@ -1,6 +1,6 @@
 """ display/display_agents """
 
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, Union
 
 import numpy as np
 import seaborn as sns
@@ -10,9 +10,64 @@ from agents.utils import get_avg_q_table
 from matplotlib import pyplot as plt
 
 
+def running_stats(y: list, 
+                  step: int = 100) -> Tuple[List[int], np.array, np.array, np.array, np.array]:
+    """
+        Returns stats (mean, standard deviation, min/max) over running windows of data
+    """
+    y_avg, y_std, y_min, y_max = [], [], [], []
+    x = []
+    step = int(len(y) / step)
+    idx_start, idx_end = -step // 2, step // 2
+
+    for i in range(0, len(y), step):
+        window = y[max(0, idx_start):idx_end]
+        
+        y_avg.append(sum(window) / len(window))
+        y_std.append(np.std(window))
+        y_min.append(np.min(window))
+        y_max.append(np.max(window))
+        x.append(i)
+
+        idx_start += step
+        idx_end += step
+
+    y_avg, y_std, y_min, y_max = np.array(y_avg), np.array(y_std), np.array(y_min), np.array(y_max)
+    return x, y_avg, y_std, y_min, y_max
+
+
+def plot_variations(y: list,
+                    y_label: str) -> None:
+    """ 
+        Display fluctuations 
+    """
+    x_avg, y_avg, y_std, y_min, y_max = running_stats(y)
+    # Plot mean of fluctuations (with a 100th window)
+    fig = sns.lineplot(
+        x=x_avg,
+        y=y_avg
+    )
+    plt.fill_between(x_avg, y_avg - y_std, y_avg + y_std, alpha=0.22)
+    plt.fill_between(x_avg, y_min, y_max, alpha=0.08)
+
+    y_min, y_max = np.min(y_min), np.max(y_max)
+    y_lim = (
+        0 if y_min > 0 else 1.1 * y_min,
+        1.1 * y_max if y_max > 0 else 0
+    )
+    fig.set(
+        ylim=y_lim,
+        title=f"{y_label} over rounds",
+        xlabel="Rounds",
+        ylabel=y_label
+    )
+    plt.legend([ "Running average", "Confidence interval (68%)", "Range of values" ])
+    plt.show()
+
+
 def plot_avg(agents: List[Agent], 
-             plot_fct: Callable, 
-             extract_from_hist: Callable, 
+             extract_fct: Callable, 
+             y_label: str,
              **kwargs) -> None:
     """ 
         Display average budget fluctuations over buyers 
@@ -20,7 +75,7 @@ def plot_avg(agents: List[Agent],
     # Extract relevant info from Agents histories
     history_concat = np.array([
         [ 
-            extract_from_hist(hist_round, agent)
+            extract_fct(hist_round, agent)
             for hist_round in agent.get_history(**kwargs)
         ]
         for agent in agents
@@ -28,7 +83,7 @@ def plot_avg(agents: List[Agent],
     # Compute mean
     history_mean = history_concat.mean(axis=0)
     # Plot mean
-    plot_fct(history_mean)
+    plot_variations(history_mean, y_label)
 
 
 def plot_q_table(a: np.array, title: str = "") -> None:
@@ -116,21 +171,3 @@ def plot_avg_curiosity(agents: List[Agent]) -> None:
     curiosity_mean = curiosity_concat.mean(axis=0)
     # Plot mean
     plot_curiosity(curiosity_mean, epsilon=epsilon)
-
-
-def running_avg(y: list, 
-                step: int = 100) -> list:
-    x_avg, y_avg = [], []
-    step = int(len(y) / step)
-    idx_start, idx_end = -step // 2, step // 2
-
-    for i in range(0, len(y), step):
-        window = y[max(0, idx_start):idx_end]
-        avg = sum(window) / len(window)
-        x_avg.append(i)
-        y_avg.append(avg)
-
-        idx_start += step
-        idx_end += step
-
-    return x_avg, y_avg
