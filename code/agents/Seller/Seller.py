@@ -4,16 +4,14 @@ import random as rd
 from typing import List, Tuple, Union
 
 import numpy as np
-import seaborn as sns
 from agents.Agent import Agent
 from agents.constants import (BANDIT_BREAKPOINT_SELLER,
                               BANDIT_STEEPNESS_SELLER, CURIOSITY_SELLER,
                               MEMORY_SELLER, PRICE_MAX, PRICE_MIN, PRICE_PROD,
                               QTY_MAX, QTY_MIN, RISK_TOLERANCE_SELLER)
 from agents.Seller.utils import get_q_table, get_q_table_size
-from display import plot_q_table
-from display.display_sellers import plot_variations
-from matplotlib import pyplot as plt
+from display.display_agents import plot_curiosity, plot_q_table
+from display.display_sellers import plot_history, plot_variations
 
 Q_TABLE = get_q_table(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
@@ -25,10 +23,12 @@ idx_qty = lambda qty: qty - QTY_MIN
 class Seller(Agent):
     """
         Selling agent class
+        * type_agent: 'seller'
         * name: Unique identifier 
         * alpha: Q-learning alpha factor, representing agent's memory
         * gamma: Q-learning gamma factor, representing agent's risk aversity
-        * epsilon: e-greedy policy e factor, representing agent's curiosity
+        * epsilon: e-greedy policy e factor, representing agent's utlimate curiosity value
+        * curiosity_history: Sequence of values representing agent's curiosity over rounds
         * bandit_steepness: Steepness of change exploration -> exploitation in dynamic adjustment of epsilon
         * bandit_breakpoint: Duration of exploration over exploitation in dynamic adjustment of epsilon
         * price_prod: Price of producing one unit of good
@@ -41,17 +41,16 @@ class Seller(Agent):
         * history: List of all sales
     """
     
-    def __init__(self,  
-                 price_prod: int = PRICE_PROD, 
-                 alpha: float = MEMORY_SELLER, 
-                 gamma: float = RISK_TOLERANCE_SELLER, 
-                 epsilon: float = CURIOSITY_SELLER,
-                 bandit_steepness: float = BANDIT_STEEPNESS_SELLER,
-                 bandit_breakpoint: float = BANDIT_BREAKPOINT_SELLER,
-                 stochastic: bool = False,
-                 name: Union[str, int] = ""):
+    def __init__(self, price_prod: int = PRICE_PROD, 
+                       alpha: float = MEMORY_SELLER, 
+                       gamma: float = RISK_TOLERANCE_SELLER, 
+                       epsilon: float = CURIOSITY_SELLER,
+                       bandit_steepness: float = BANDIT_STEEPNESS_SELLER,
+                       bandit_breakpoint: float = BANDIT_BREAKPOINT_SELLER,
+                       stochastic: bool = False,
+                       name: Union[str, int] = ""):
 
-        super().__init__(alpha, gamma, epsilon, name=name)
+        super().__init__('seller', alpha, gamma, epsilon, name=name)
         self.bandit_steepness = bandit_steepness
         self.bandit_breakpoint = bandit_breakpoint
         
@@ -87,67 +86,62 @@ class Seller(Agent):
 
     
     def plot_price(self) -> None:
-        """ Display price fluctuations """
-        plot_variations(self.get_history(), value='price', price_prod=self.price_prod)
+        """ 
+            Display price fluctuations 
+        """
+        plot_variations(self.get_history(), value='price')
     
     def plot_qty(self) -> None:
-        """ Display produced quantity fluctuations """
-        plot_variations(self.get_history(), value='qty', price_prod=self.price_prod)
+        """ 
+            Display produced quantity fluctuations 
+        """
+        plot_variations(self.get_history(), value='qty')
         
     def plot_profit(self) -> None:
-        """ Display profit fluctuations """
+        """ 
+            Display profit fluctuations 
+        """
         plot_variations(self.get_history(), value='profit', price_prod=self.price_prod)
     
     def plot_history(self) -> None:
-        """ Display sales history (quantity sold over price) """
-        history = self.get_history()
-        x_lim = len(history)
-        y_lim = 100 / PRICE_MIN
+        """ 
+            Display sales history (quantity sold over price) 
+        """
+        plot_history(self.get_history(), price_prod=self.price_prod)
 
-        prices, nb_sales = [], []
-        for _, price, sales in history:
-            prices.append(price)
-            nb_sales.append(sum(sales))
-
-        fig = sns.scatterplot(
-            x=prices,
-            y=nb_sales,
-            hue=list(range(x_lim)),
-            palette='jet_r',
-            alpha=1 - min(0.8, x_lim / 100000)
-        )
-        fig_baseline = sns.lineplot(
-            x=[ self.price_prod, self.price_prod ], 
-            y=[ 0, y_lim ]
-        )
-
-        fig.set(
-            xlim=[ PRICE_MIN, PRICE_MAX ],
-            ylim=[ 0, y_lim ],
-            xlabel="Selling price",
-            ylabel="Number of sales"
-        )
-        plt.show()
+    def plot_curiosity(self) -> None:
+        """ 
+            Display curiosity evolution over rounds
+        """
+        plot_curiosity(self.curiosity_history, self.epsilon)
         
     def plot_q_table(self) -> None:
-        """ Display heatmap of learnt Q-table """
+        """ 
+            Display heatmap of learnt Q-table 
+        """
         plot_q_table(self.get_q_table())
     
     
     
-    def sell(self, qty: int) -> None:
-        """ Sell 'qty' goods at 'self.price_sell' """
+    def sell(self, 
+             qty: int) -> None:
+        """ 
+            Sell 'qty' goods at 'self.price_sell' 
+        """
         assert qty <= self.qty_left, f"Seller {self.name} is trying to sell {qty} goods, but it has only {self.qty_left} left!"
         self.qty_left -= qty
         self.history[-1][2].append(qty)
         
             
     def learn(self, Verbose: bool = False) -> None:
-        """ Update Q-table ("learn") and reinitialize params """
+        """ 
+            Update Q-table ('learn') and reinitialize params 
+        """
         
         # Compute reward (profit)
         qty_sold = self.qty_prod - self.qty_left
         reward = qty_sold * self.price_sell - self.qty_prod * self.price_prod
+        # Compute the potential reward it could have earned with this pair (self.price_sell, self.price_prod)
         potential_reward = QTY_MAX * (self.price_sell - self.price_prod)
         
         if Verbose:
@@ -174,7 +168,7 @@ class Seller(Agent):
             self.price_sell += PRICE_MIN
             self.qty_prod += QTY_MIN
         
-        # Give buyers their budget for next round
+        # Let sellers produce for next round
         self.qty_left = self.qty_prod        
         # Prepare a new list for next round
         self.history.append(( self.qty_prod, self.price_sell, [] ))

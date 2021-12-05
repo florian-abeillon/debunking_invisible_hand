@@ -4,7 +4,6 @@ import random as rd
 from typing import List, Tuple, Union
 
 import numpy as np
-import plotly.graph_objects as go
 from agents.Agent import Agent
 from agents.Buyer.utils import get_q_table, get_q_table_size
 from agents.constants import (BANDIT_BREAKPOINT_BUYER, BANDIT_STEEPNESS_BUYER,
@@ -12,9 +11,9 @@ from agents.constants import (BANDIT_BREAKPOINT_BUYER, BANDIT_STEEPNESS_BUYER,
                               MEMORY_BUYER, MYOPIA_BUYER, PENALTY_BUYER,
                               PRICE_MAX, PRICE_MIN, QTY_MAX,
                               RISK_TOLERANCE_BUYER)
-from display.display_buyers import (plot_budget, plot_demand_curve,
-                                    plot_nb_purchases, plot_sub_q_tables,
-                                    plot_w_slider)
+from display.display_agents import plot_curiosity
+from display.display_buyers import (plot_demand_curve, plot_history,
+                                    plot_sub_q_tables, plot_variations)
 
 Q_TABLE = get_q_table(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(BUDGET_MAX, PRICE_MIN, PRICE_MAX, QTY_MAX)
@@ -25,10 +24,12 @@ idx_price = lambda price: price - PRICE_MIN
 class Buyer(Agent):
     """
         Buying agent class
+        * type_agent: 'buyer'
         * name: Unique identifier 
         * alpha: Q-learning alpha factor, representing agent's memory
         * gamma: Q-learning gamma factor, representing agent's risk aversity
-        * epsilon: e-greedy policy e factor, representing agent's curiosity
+        * epsilon: e-greedy policy e factor, representing agent's utlimate curiosity value
+        * curiosity_history: Sequence of values representing agent's curiosity over rounds
         * bandit_steepness: Steepness of change exploration -> exploitation in dynamic adjustment of epsilon
         * bandit_breakpoint: Duration of exploration over exploitation in dynamic adjustment of epsilon
         * myopia: Factor representing agent's short-sightedness
@@ -41,20 +42,18 @@ class Buyer(Agent):
         * history: List of all purchases
     """
     
-    def __init__(self,  
-                 budget: int = BUDGET, 
-                 alpha: float = MEMORY_BUYER, 
-                 gamma: float = RISK_TOLERANCE_BUYER, 
-                 epsilon: float = CURIOSITY_BUYER,
-                 bandit_steepness: float = BANDIT_STEEPNESS_BUYER,
-                 bandit_breakpoint: float = BANDIT_BREAKPOINT_BUYER,
-                 myopia: float = MYOPIA_BUYER,
-                 penalty: float = PENALTY_BUYER,
-                 stochastic: bool = False,
-                 name: Union[str, int] = ""):
+    def __init__(self, budget: int = BUDGET, 
+                       alpha: float = MEMORY_BUYER, 
+                       gamma: float = RISK_TOLERANCE_BUYER, 
+                       epsilon: float = CURIOSITY_BUYER,
+                       bandit_steepness: float = BANDIT_STEEPNESS_BUYER,
+                       bandit_breakpoint: float = BANDIT_BREAKPOINT_BUYER,
+                       myopia: float = MYOPIA_BUYER,
+                       penalty: float = PENALTY_BUYER,
+                       stochastic: bool = False,
+                       name: Union[str, int] = ""):
 
-        super().__init__(alpha, gamma, epsilon, name=name)
-        
+        super().__init__('buyer', alpha, gamma, epsilon, name=name)
         self.bandit_steepness = bandit_steepness
         self.bandit_breakpoint = bandit_breakpoint
         self.myopia: float = myopia
@@ -97,64 +96,63 @@ class Buyer(Agent):
                 for round_hist in self.history
             ]
         return super().get_history()
+            
+    def get_curiosity(self, step: int = 0) -> List[float]:
+        curiosity_history = super().get_curiosity()
+        if not step:
+            step = int(np.mean([ 
+                len(hist_round) for hist_round in self.get_history() 
+            ]))
+        return [
+            curiosity_history[i]
+            for i in range(0, len(curiosity_history), step)
+        ]
     
     
 
     def plot_budget(self, non_zero: bool = True) -> None:
-        """ Display remaining budget variation over rounds """
-        history_budget = [ 
-            hist_round[-1][0] if hist_round else self.budget 
-            for hist_round in self.get_history(non_zero=non_zero)
-        ]
-        plot_budget(history_budget, budget=self.budget)
+        """ 
+            Display remaining budget variation over rounds 
+        """
+        plot_variations(self.get_history(non_zero=non_zero), value='budget', budget=self.budget)
 
     def plot_nb_purchases(self) -> None:
-        """ Display number of purchases variation over rounds """
-        history_nb_purchases = [ 
-            sum([ transac[2] for transac in hist_round ])
-            for hist_round in self.get_history(non_zero=True)
-        ]
-        plot_nb_purchases(history_nb_purchases)
+        """  
+            Display number of purchases variation over rounds 
+        """
+        plot_variations(self.get_history(non_zero=True), value='nb_purchases')
     
     def plot_history(self, non_zero: bool = True) -> None:
-        """ Display purchases history (quantity purchased over price), for each budget """
-        
-        history = self.get_history(non_zero=non_zero)
-        d = { i: [] for i in range(self.budget + 1)}
-        for i, hist_round in enumerate(history):
-            for budget, price, qty in hist_round:
-                d[budget].append(( i, price, qty ))
-        d = { budget: np.array(transac) for budget, transac in d.items() }
-        
-        frames = [
-            go.Frame(
-                data=go.Scatter(
-                    x=transac[:, 2], 
-                    y=transac[:, 1],
-                    mode='markers',
-                    marker_color=transac[:, 0]
-                ) if np.any(transac) else go.Scatter(x=[], y=[]),
-                name=str(budget)
-            )
-            for budget, transac in d.items()
-        ]
+        """ 
+            Display purchases history (quantity purchased over price), for each budget 
+        """
+        plot_history(self.get_history(non_zero=non_zero), budget=self.budget)
 
-        frames.reverse()
-        plot_w_slider(frames, x_label="Quantity purchased", y_label="Price offered")
-        
+    def plot_curiosity(self) -> None:
+        """ 
+            Display curiosity evolution over rounds
+        """
+        plot_curiosity(self.curiosity_history, self.epsilon)
         
     def plot_sub_q_tables(self) -> None:
-        """ Display heatmap of learnt Q-table, for each budget """
+        """ 
+            Display heatmap of learnt Q-table, for each budget 
+        """
         plot_sub_q_tables(self.get_q_table())
 
     def plot_demand_curve(self) -> tuple:
-        """ Display demand curve from learnt Q-table, for each budget """
+        """ 
+            Display demand curve from learnt Q-table, for each budget 
+        """
         return plot_demand_curve(self.get_q_table())
 
     
     
-    def buy(self, price: int, qty_left: int) -> int:
-        """ Returns the number of goods bought at price price """
+    def buy(self, price: int, 
+                  qty_left: int) -> int:
+        """ 
+            Return the number of goods bought at price price 
+        """
         assert price > 0, f"price={price} should be positive (no free item)"
         
         # Get quantity to buy with e-greedy policy, given that
@@ -175,7 +173,9 @@ class Buyer(Agent):
         
             
     def learn(self, Verbose: bool = False) -> None:
-        """ Update Q-table ("learn") and reinitialize params """
+        """ 
+            Update Q-table ('learn') and reinitialize params 
+        """
 
         last_round_hist = self.history[-1]
         
@@ -184,20 +184,24 @@ class Buyer(Agent):
         nb_purchases = len(last_round_hist)
         
         # Compute penalty for budget not spent
-        penalty = self.penalty * self.budget_left
+        global_penalty = self.penalty * self.budget_left
         
         # print(f"Buyer {self.name} learning...")
         for i, purchase in enumerate(last_round_hist):
             budget, price, qty = purchase
             
-            # Compute reward (nb of goods purchased)
-            # Weight more nb of goods purchased 
-            myopia = self.myopia**(nb_purchases - i)
-            nb_goods_purchased_after -= qty
-            reward = qty + myopia * (nb_goods_purchased_after - penalty)
-            
-            # Get max potential Q-value
+            # Compute local reward (nb of goods purchased from this seller)
             budget_left = last_round_hist[i+1][0] if i < nb_purchases - 1 else self.budget_left
+            local_penalty = self.penalty * budget_left
+            local_reward = qty - local_penalty
+            # Compute flobal reward (nb of goods purchased at the end of the round)
+            nb_goods_purchased_after -= qty
+            global_reward = nb_goods_purchased_after - global_penalty
+            # Compute total reward
+            myopia = self.myopia**(nb_purchases - i)
+            reward = (1 - myopia) * local_reward + myopia * global_reward
+
+            # Get max potential Q-value
             potential_reward = np.nanmax(self.q_table[budget_left])
 
             if Verbose:
