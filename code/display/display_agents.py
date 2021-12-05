@@ -62,7 +62,8 @@ def plot_variations(y: list,
         ylabel=y_label
     )
     plt.legend([ "Running average", "Confidence interval (68%)", "Range of values" ])
-    plt.savefig(f'plots/{PLOT_NAME}_{y_label}.png')
+    y_label_clean = y_label.replace(' ', '_')
+    plt.savefig(f'{PLOT_NAME}_{y_label_clean}.png')
     plt.show()
 
 
@@ -104,7 +105,7 @@ def plot_q_table(a: np.array, title: str = "") -> None:
         **kwargs
     )
     fig.invert_yaxis()
-    plt.savefig(f'plots/{PLOT_NAME}_q_table.png')
+    plt.savefig(f'{PLOT_NAME}_q_table.png')
     plt.show()
 
 
@@ -144,7 +145,7 @@ def plot_curiosity(curiosity_values: List[float],
         ylim=( 0, 1 )
     )
     plt.legend(labels=[ "Curiosity", "Epsilon (asymptote)" ])
-    plt.savefig(f'plots/{PLOT_NAME}_curiosity.png')
+    plt.savefig(f'{PLOT_NAME}_curiosity.png')
     plt.show()
 
 
