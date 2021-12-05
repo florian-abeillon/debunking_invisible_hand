@@ -1,6 +1,6 @@
 # debunking_invisible_hand
 
-> __Debunking the *Invisible Hand*__  
+> __Learning to Trade: Examining Agent Behaviour in Markets__  
 > *~ Les truites saumonées ~*  
 > Abeillon, Florian - Arnórsson, Sverrir - Huang, Yilin
 
