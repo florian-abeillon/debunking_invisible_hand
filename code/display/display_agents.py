@@ -4,7 +4,6 @@ from typing import Callable, List, Tuple
 
 import numpy as np
 import seaborn as sns
-from agents import Agent
 from agents.constants import CURIOSITY_BUYER, CURIOSITY_SELLER
 from agents.utils import get_avg_q_table
 from matplotlib import pyplot as plt
@@ -86,7 +85,7 @@ def plot_variations(y: list,
         plt.savefig(f"results/{save_name}.png")
 
 
-def plot_avg(agents: List[Agent], 
+def plot_avg(agents: list, 
              extract_fct: Callable, 
              y_label: str,
              ymin: int = None,
@@ -144,7 +143,7 @@ def plot_q_table(q_table: np.array,
         plt.savefig(f"results/{save_name}.png")
 
 
-def plot_avg_q_table(agents: List[Agent],
+def plot_avg_q_table(agents: list,
                      save: bool = False,
                      save_prefix: str = SAVE_PREFIX,
                      save_suffix: str = "") -> None:
@@ -197,7 +196,7 @@ def plot_curiosity(curiosity_values: List[float],
         plt.savefig(f"results/{save_name}.png")
 
 
-def plot_avg_curiosity(agents: List[Agent],
+def plot_avg_curiosity(agents: list,
                        save: bool = False,
                        save_prefix: str = SAVE_PREFIX,
                        save_suffix: str = "") -> None:

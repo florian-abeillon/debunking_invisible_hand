@@ -7,24 +7,49 @@
 ## General Introduction
 
 Coding project for ETH Zürich's course *[Agent-Based Modeling and Social System Simulation](https://coss.ethz.ch/education/ABM.html)*.  
-The main idea is to simulate independent selling/buying agents, and observe the evolution of price with different parameters -- testing validity of the *Invisible Hand* theory.  
-
--> ABSTRACT HERE <-
+This project aims to create a faithful __agent-based representation of a market__ and determine the most important parameters that affect it. 
+The market’s model is based on a __Markov Decision Process__ (MDP) adjusted to suite a financial application, while the agents learn through 
+updating what they know (ie. results/reward from a particular state). This learning process emulates __Reinforcement Learning__ (RL).
+In this way, we want to show that the so-called __*Invisible Hand*__ is not a magical phenomenon, but rather is a consequence of individual-level 
+dynamics within a complex system.
 
 ## The Model
 
-(Define dependent and independent variables you want to study. Say how you want to measure them.) (Why is your model a good abstraction of the problem you want to study?) (Are you capturing all the relevant aspects of the problem?)
+In our project, we model a market environment where two types of market agents interact. Every agent -- be it a buyer or a seller -- will try and maximize its own reward at every step.  
+Agents:
+* __Buyer__
+    * __Reward__: Number of goods purchased
+    * __Parameters__:
+        * _Budget_ - Amount of money provided each round
+        * _Memory_ - Agent's Q-learning memory ("alpha")
+        * _Risk tolerance_ - Agent's Q-learning discount factor ("gamma")
+        * _Curiosity_ - Agent's \epsilon-greedy policy factor
+        * _Bandit steepness_ - Steepness of change exploration -> exploitation in dynamic adjustment of curiosity over rounds
+        * _Bandit breakpoint_ - Duration of exploration over exploitation in dynamic adjustment of curiosity over rounds
+        * _Short-sightedness_ - Agent's preference between short- and long-term
+        * _Penalty_ - Penalization factor when the agent has some budget leftovers at the end of a round
+* __Seller__
+    * __Reward__: Profit
+    * __Parameters__:
+        * _Production price_ - Amount of money required to produce a good
+        * _Memory_ - Agent's Q-learning memory ("alpha")
+        * _Risk tolerance_ - Agent's Q-learning discount factor ("gamma")
+        * _Curiosity_ - Agent's \epsilon-greedy policy factor
+        * _Bandit steepness_ - Steepness of change exploration -> exploitation in dynamic adjustment of curiosity over rounds
+        * _Bandit breakpoint_ - Duration of exploration over exploitation in dynamic adjustment of curiosity over rounds
+
+-> Note that a _supply function_ may be implemented for Sellers -- rather than a mere production price -- so as to depict economies of scale.  
 
 
 ## Fundamental Questions
 
-(At the end of the project you want to find the answer to these questions)
-(Formulate a few, clear questions. Articulate them in sub-questions, from the more general to the more specific. )
+Does a simple Agent-Based Modelling of a market lead to the apparition of macro-level behaviours -- an *Invisible Hand*? -- as in *real* markets?  
+If so, what are the key parameters, that will drastically change the overall market behaviour?  
 
 
 ## Expected Results
 
-(What are the answers to the above questions that you expect to find before starting your research?)
+We expected to see some macro-level behaviour, maybe not a clear-cut herd mentality but rather a general tendency of agents to behave in a similar way towards a stable "equilibrium state".
 
 
 ## References 
@@ -39,10 +64,5 @@ The main idea is to simulate independent selling/buying agents, and observe the 
 
 > LeBaron, B. (2002). Building the Santa Fe artificial stock market. Physica A, 1–20.
 
-
-## Research Methods
-
-(Cellular Automata, Agent-Based Model, Continuous Modeling...) (If you are not sure here: 1. Consult your colleagues, 2. ask the teachers, 3. remember that you can change it afterwards)
-
 ## Acknowledgments
-Thanks to [Thomas Asikis](https://github.com/asikist-ethz) for its guidance throughout the project.
+Thanks to [Thomas Asikis](https://github.com/asikist-ethz) for its guidance during the project.

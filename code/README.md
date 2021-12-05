@@ -1,9 +1,11 @@
 
 ## HOWTO
 Install requirements
+
     pip3 install -r requirements.txt
 
 And then just run 
+
     python3 main.py
 
 to run a market simulation with the given parameters. Some graphs will be plotted at the end of the simulation.  

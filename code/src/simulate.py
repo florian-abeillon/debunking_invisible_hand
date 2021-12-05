@@ -3,7 +3,8 @@
 import random as rd
 from typing import List, Tuple, Union
 
-from agents import Buyer, Seller
+from agents.Buyer.Buyer import Buyer
+from agents.Seller.Seller import Seller
 
 from src.constants import NB_BUYERS, NB_SELLERS
 

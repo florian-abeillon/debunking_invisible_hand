@@ -1,13 +1,9 @@
 """ agents/utils """
 
-from typing import List
-
 import numpy as np
 
-from agents.Agent import Agent
 
-
-def get_avg_q_table(agents: List[Agent]) -> np.array:
+def get_avg_q_table(agents: list) -> np.array:
     """ 
         Return average Q-table from list of Agents 
     """

@@ -16,8 +16,8 @@ class Agent:
         * gamma: Q-learning gamma factor, representing agent's risk aversity
         * epsilon: e-greedy policy e factor, representing agent's utlimate curiosity value
         * curiosity_history: Sequence of values representing agent's curiosity over rounds
-        * bandit_steepness: Steepness of change exploration -> exploitation in dynamic adjustment of epsilon
-        * bandit_breakpoint: Duration of exploration over exploitation in dynamic adjustment of epsilon
+        * bandit_steepness: Steepness of change exploration -> exploitation in dynamic adjustment of curiosity
+        * bandit_breakpoint: Duration of exploration over exploitation in dynamic adjustment of curiosity
         * q_table: Q-learning table
         * size_unk: Total number of cells to explore in q_table
         * proportion_unk: (Estimation of the) proportions of cells yet to explore

@@ -30,10 +30,10 @@ class Buyer(Agent):
         * gamma: Q-learning gamma factor, representing agent's risk aversity
         * epsilon: e-greedy policy e factor, representing agent's utlimate curiosity value
         * curiosity_history: Sequence of values representing agent's curiosity over rounds
-        * bandit_steepness: Steepness of change exploration -> exploitation in dynamic adjustment of epsilon
-        * bandit_breakpoint: Duration of exploration over exploitation in dynamic adjustment of epsilon
+        * bandit_steepness: Steepness of change exploration -> exploitation in dynamic adjustment of curiosity
+        * bandit_breakpoint: Duration of exploration over exploitation in dynamic adjustment of curiosity
         * myopia: Factor representing agent's short-sightedness
-        * penalty: Penalization factor when there are some budget leftovers at the end of the round
+        * penalty: Penalization factor when there are some budget leftovers at the end of a round
         * budget: Initial budget when starting round
         * budget_left: Budget left, to be used
         * q_table: Q-learning table

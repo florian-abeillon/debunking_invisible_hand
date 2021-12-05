@@ -30,8 +30,8 @@ class Seller(Agent):
         * gamma: Q-learning gamma factor, representing agent's risk aversity
         * epsilon: e-greedy policy e factor, representing agent's utlimate curiosity value
         * curiosity_history: Sequence of values representing agent's curiosity over rounds
-        * bandit_steepness: Steepness of change exploration -> exploitation in dynamic adjustment of epsilon
-        * bandit_breakpoint: Duration of exploration over exploitation in dynamic adjustment of epsilon
+        * bandit_steepness: Steepness of change exploration -> exploitation in dynamic adjustment of curiosity
+        * bandit_breakpoint: Duration of exploration over exploitation in dynamic adjustment of curiosity
         * price_prod: Price of producing one unit of good
         * qty_prod: Quantity of goods produced (to be learned as we go along)
         * price_sell: Price at which the agent will try to sell its goods (to be learned as we go along)
