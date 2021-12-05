@@ -3,7 +3,7 @@
 from typing import List, Tuple, Union
 
 import seaborn as sns
-from agents.constants import PRICE_MAX, PRICE_MIN
+from agents.constants import PRICE_MAX, PRICE_MIN, QTY_MAX, QTY_MIN
 from matplotlib import pyplot as plt
 from src.constants import SAVE_PREFIX
 
@@ -12,19 +12,27 @@ from display.display_agents import plot_avg, plot_variations
 UTILS = {
     'qty': (
         lambda hist_round, seller: hist_round[0],
-        "Selling price"
+        "Produced quantity",
+        QTY_MIN,
+        QTY_MAX
     ),
     'price': (
         lambda hist_round, seller: hist_round[1],
-        "Produced quantity"
+        "Selling price",
+        PRICE_MIN,
+        PRICE_MAX
     ),
     'sales': (
         lambda hist_round, seller: sum(hist_round[2]),
-        "Sold quantity"
+        "Sold quantity",
+        0,
+        None
     ),
     'profit': (
         lambda hist_round, seller: hist_round[1] * sum(hist_round[2]) - hist_round[0] * seller.price_prod,
-        "Profit"
+        "Profit",
+        None,
+        None
     )
 }
 
@@ -89,12 +97,12 @@ def plot_variations_sellers(history: List[Tuple[int, int, List[int]]],
         Display sellers fluctuations 
     """
     assert value in [ 'qty', 'price', 'sales', 'profit' ], f"value={value} should be within [ 'qty', 'price', 'sales', 'profit' ]"
-    extract_fct, y_label = UTILS[value]
+    extract_fct, y_label, ymin, ymax = UTILS[value]
     history = [ 
         extract_fct(hist_round, None)
         for hist_round in history 
     ]
-    plot_variations(history, y_label, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
+    plot_variations(history, y_label, ymin=ymin, ymax=ymax, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
 
 
 def plot_avg_variations_sellers(sellers: list,
@@ -107,7 +115,7 @@ def plot_avg_variations_sellers(sellers: list,
     """
     if type(value) == list:
         for v in value:
-            plot_avg_variations_sellers(sellers, value=v, save=save)
+            plot_avg_variations_sellers(sellers, value=v, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
         return
     assert value in [ 'qty', 'price', 'sales', 'profit' ], f"value={value} should be within [ 'qty', 'price', 'sales', 'profit' ]"
     plot_avg(sellers, *UTILS[value], save=save, save_prefix=save_prefix, save_suffix=save_suffix)

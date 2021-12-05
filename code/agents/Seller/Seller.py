@@ -90,13 +90,13 @@ class Seller(Agent):
         """ 
             Display price fluctuations 
         """
-        plot_variations_sellers(self.get_history(), 'price')
+        plot_variations_sellers(self.get_history(), 'price', ymin=PRICE_MIN, ymax=PRICE_MAX)
     
     def plot_qty(self) -> None:
         """ 
             Display produced quantity fluctuations 
         """
-        plot_variations_sellers(self.get_history(), 'qty')
+        plot_variations_sellers(self.get_history(), 'qty', ymin=QTY_MIN, ymax=QTY_MAX)
         
     def plot_profit(self) -> None:
         """ 
@@ -108,7 +108,7 @@ class Seller(Agent):
         """ 
             Display sales fluctuations 
         """
-        plot_variations_sellers(self.get_history(), 'sales')
+        plot_variations_sellers(self.get_history(), 'sales', ymin=QTY_MIN, ymax=QTY_MAX)
     
     def plot_history(self, save: bool = False,
                            save_prefix: str = SAVE_PREFIX,

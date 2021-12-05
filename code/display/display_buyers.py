@@ -5,7 +5,8 @@ from typing import List, Tuple, Union
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from agents.constants import BUDGET, PRICE_MAX, PRICE_MIN
+from agents.constants import (BUDGET, BUDGET_MAX, BUDGET_MIN, PRICE_MAX,
+                              PRICE_MIN)
 from agents.utils import get_avg_q_table
 from matplotlib import pyplot as plt
 from matplotlib.widgets import Slider
@@ -16,11 +17,15 @@ from display.display_agents import plot_avg, plot_variations
 UTILS = {
     'budget': (
         lambda hist_round, buyer: hist_round[-1][0] if hist_round else buyer.budget,
-        "Budget leftovers"
+        "Budget leftovers",
+        BUDGET_MIN,
+        BUDGET_MAX
     ),
     'purchases': (
         lambda hist_round, buyer: sum([ qty for _, _, qty in hist_round ]),
-         "Number of purchases"
+        "Number of purchases",
+        0,
+        None
     )
 }
 
@@ -35,12 +40,12 @@ def plot_variations_buyers(history: List[List[Tuple[int, int, int]]],
         Display buyers fluctuations
     """
     assert value in [ 'budget', 'purchases' ], f"value={value} should be within [ 'budget', 'purchases' ]"
-    extract_fct, y_label = UTILS[value]
+    extract_fct, y_label, ymin, ymax = UTILS[value]
     history = [ 
         extract_fct(hist_round, agent)
         for hist_round in history 
     ]
-    plot_variations(history, y_label, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
+    plot_variations(history, y_label, ymin=ymin, ymax=ymax, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
 
 
 def plot_avg_variations_buyers(buyers: list, 
@@ -54,7 +59,7 @@ def plot_avg_variations_buyers(buyers: list,
     """
     if type(value) == list:
         for v in value:
-            plot_avg_variations_buyers(buyers, value=v, non_zero=True, save=save)
+            plot_avg_variations_buyers(buyers, value=v, non_zero=True, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
         return
     assert value in [ 'budget', 'purchases' ], f"value={value} should be within [ 'budget', 'purchases' ]"
     plot_avg(buyers, *UTILS[value], non_zero=non_zero, save=save, save_prefix=save_prefix, save_suffix=save_suffix)

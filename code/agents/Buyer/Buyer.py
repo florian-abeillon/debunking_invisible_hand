@@ -114,7 +114,7 @@ class Buyer(Agent):
         """ 
             Display remaining budget variation over rounds 
         """
-        plot_variations_buyers(self.get_history(non_zero=non_zero), 'budget', agent=self)
+        plot_variations_buyers(self.get_history(non_zero=non_zero), 'budget', ymin=BUDGET_MIN, ymax=BUDGET_MAX, agent=self)
 
     def plot_purchases(self) -> None:
         """  

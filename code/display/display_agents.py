@@ -39,6 +39,8 @@ def running_stats(y: list,
 
 def plot_variations(y: list,
                     y_label: str,
+                    ymin: int = None,
+                    ymax: int = None,
                     save: bool = False,
                     save_prefix: str = SAVE_PREFIX,
                     save_suffix: str = "") -> None:
@@ -51,8 +53,15 @@ def plot_variations(y: list,
         x=x_avg,
         y=y_avg
     )
-    plt.fill_between(x_avg, y_avg - y_std, y_avg + y_std, alpha=0.22)
-    plt.fill_between(x_avg, y_min, y_max, alpha=0.08)
+
+    # Plot confidence interval / range of values
+    ci_lower, ci_upper = y_avg - y_std, y_avg + y_std
+    if ymin is not None:
+        ci_lower = [ max(y, ymin) for y in ci_lower ]
+    if ymax is not None:
+        ci_upper = [ min(y, ymax) for y in ci_upper ]
+    plt.fill_between(x_avg, ci_lower, ci_upper, alpha=0.22)
+    plt.fill_between(x_avg, y_min, y_max, alpha=0.1)
 
     y_min, y_max = np.min(y_min), np.max(y_max)
     y_lim = (
@@ -80,6 +89,8 @@ def plot_variations(y: list,
 def plot_avg(agents: List[Agent], 
              extract_fct: Callable, 
              y_label: str,
+             ymin: int = None,
+             ymax: int = None,
              save: bool = False,
              save_prefix: str = SAVE_PREFIX,
              save_suffix: str = "",
@@ -98,7 +109,7 @@ def plot_avg(agents: List[Agent],
     # Compute mean
     history_mean = history_concat.mean(axis=0)
     # Plot mean
-    plot_variations(history_mean, y_label, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
+    plot_variations(history_mean, y_label, ymin=ymin, ymax=ymax, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
 
 
 def plot_q_table(q_table: np.array, 
