@@ -10,6 +10,11 @@ from matplotlib import pyplot as plt
 from display.display_agents import plot_avg
 
 
+def moving_average(a, n=1000) -> np.ndarray:
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n
+
 def plot_history(history: List[Tuple[int, int, List[int]]],
                  price_prod: int = 0) -> None:
     """ 
@@ -51,7 +56,7 @@ def plot_history(history: List[Tuple[int, int, List[int]]],
 
 
 def plot_variations(history: List[Tuple[int, int, List[int]]], 
-                    value: Union[str, List[str]] = [ 'price', 'qty', 'profit' ], 
+                    value: Union[str, List[str]] = [ 'price', 'qty', 'profit', 'sales' ], 
                     price_prod: int = PRICE_PROD,
                     avg: bool = False) -> None:
     """ 
@@ -63,7 +68,7 @@ def plot_variations(history: List[Tuple[int, int, List[int]]],
             plot_variations(history, value=v, price_prod=price_prod, avg=avg)
         return
 
-    assert value in [ 'price', 'qty', 'profit' ], f"value={value} should be within [ 'price', 'qty', 'profit' ]"
+    assert value in [ 'price', 'qty', 'profit', 'sales' ], f"value={value} should be within [ 'price', 'qty', 'profit', 'sales' ]"
     
     if value == 'price':
         func = lambda qty_prod, price, sales: price
@@ -71,6 +76,9 @@ def plot_variations(history: List[Tuple[int, int, List[int]]],
     elif value == 'qty':
         func = lambda qty_prod, price, sales: qty_prod
         y_label = "Produced quantity"
+    elif value == 'sales':
+        func = lambda qty_prod, price, sales: sales
+        y_label = "Sold quantity"
     else:
         sum_or_not_sum = lambda sales: sales if avg else sum(sales)
         func = lambda qty_prod, price, sales: price * sum_or_not_sum(sales) - qty_prod * price_prod
@@ -93,11 +101,13 @@ def plot_variations(history: List[Tuple[int, int, List[int]]],
     x_step = x_lim // 100
     # Plot mean of fluctuations (with a 100th window)
     fig_mean = sns.lineplot(
-        x=[ (i + 0.5) * x_step for i in range(100) ],
-        y=[
-            np.mean(y[i * x_step:(i + 1) * x_step])
-            for i in range(100)
-        ]
+        # x=[ (i + 0.5) * x_step for i in range(100) ],
+        # y=[
+        #     np.mean(y[i * x_step:(i + 1) * x_step])
+        #     for i in range(100)
+        # ]
+        x=range(moving_average(y).shape[0]),
+        y=moving_average(y)
     )
 
     y_min, y_max = np.min(y), np.max(y)
@@ -116,7 +126,7 @@ def plot_variations(history: List[Tuple[int, int, List[int]]],
     
 
 def plot_avg_variations(sellers: list, 
-                        value: Union[str, List[str]] = [ 'price', 'qty', 'profit' ]) -> None:
+                        value: Union[str, List[str]] = [ 'price', 'qty', 'profit', 'sales' ]) -> None:
     """ 
         Display price/qty/profit fluctuations across buyers 
     """
