@@ -1,11 +1,8 @@
 """ src/constants """
 
 # General parameters
-VERBOSE = False
-SAVE_PREFIX = 'baseline'
-
-# Environment parameters
-NB_ROUNDS = 25000
+VERBOSE = True
+NB_ROUNDS = 50000
 NB_SELLERS = 5
-NB_BUYERS = 1
-NB_TO_MATCH = -1
+NB_BUYERS = 30
+NB_TO_MATCH = 1
