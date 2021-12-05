@@ -3,8 +3,9 @@
 from typing import List, Tuple, Union
 
 import seaborn as sns
-from agents.constants import PRICE_MAX, PRICE_MIN, PRICE_PROD
+from agents.constants import PRICE_MAX, PRICE_MIN
 from matplotlib import pyplot as plt
+from src.constants import SAVE_PREFIX
 
 from display.display_agents import plot_avg, plot_variations
 
@@ -29,7 +30,10 @@ UTILS = {
 
 
 def plot_history(history: List[Tuple[int, int, List[int]]],
-                 price_prod: int = 0) -> None:
+                 price_prod: int = 0,
+                 save: bool = False,
+                 save_prefix: str = SAVE_PREFIX,
+                 save_suffix: str = "") -> None:
     """ 
         Display sales history 
     """
@@ -67,10 +71,20 @@ def plot_history(history: List[Tuple[int, int, List[int]]],
     )
     plt.show()
 
+    if save:
+        save_name = "seller_history"
+        if save_prefix:
+            save_name = f"{save_prefix}_{save_name}"
+        if save_suffix:
+            save_name = f"{save_name}_{save_suffix}"
+        plt.savefig(f"results/{save_name}.png")
+
 
 def plot_variations_sellers(history: List[Tuple[int, int, List[int]]], 
-                            value: str, 
-                            price_prod: int = PRICE_PROD) -> None:
+                            value: str,
+                            save: bool = False,
+                            save_prefix: str = SAVE_PREFIX,
+                            save_suffix: str = "") -> None:
     """ 
         Display sellers fluctuations 
     """
@@ -80,18 +94,21 @@ def plot_variations_sellers(history: List[Tuple[int, int, List[int]]],
         extract_fct(hist_round, None)
         for hist_round in history 
     ]
-    plot_variations(history, y_label)
+    plot_variations(history, y_label, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
 
 
 def plot_avg_variations_sellers(sellers: list,
-                                value: Union[str, List[str]] = [ 'qty', 'price', 'sales', 'profit' ]) -> None:
+                                value: Union[str, List[str]] = [ 'qty', 'price', 'sales', 'profit' ],
+                                save: bool = False,
+                                save_prefix: str = SAVE_PREFIX,
+                                save_suffix: str = "") -> None:
     """ 
         Display average sellers fluctuations
     """
     if type(value) == list:
         for v in value:
-            plot_avg_variations_sellers(sellers, value=v)
+            plot_avg_variations_sellers(sellers, value=v, save=save)
         return
     assert value in [ 'qty', 'price', 'sales', 'profit' ], f"value={value} should be within [ 'qty', 'price', 'sales', 'profit' ]"
-    plot_avg(sellers, *UTILS[value])
+    plot_avg(sellers, *UTILS[value], save=save, save_prefix=save_prefix, save_suffix=save_suffix)
     

@@ -3,3 +3,4 @@
 .DS_STORE
 code/.prof_stats
 code/profile.txt
+notebooks/results/*

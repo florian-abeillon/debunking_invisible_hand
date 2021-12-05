@@ -1,13 +1,14 @@
 """ display/display_agents """
 
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Tuple
 
 import numpy as np
 import seaborn as sns
 from agents import Agent
-from agents.constants import CURIOSITY_BUYER, CURIOSITY_SELLER, PLOT_NAME
+from agents.constants import CURIOSITY_BUYER, CURIOSITY_SELLER
 from agents.utils import get_avg_q_table
 from matplotlib import pyplot as plt
+from src.constants import SAVE_PREFIX
 
 
 def running_stats(y: list, 
@@ -37,7 +38,10 @@ def running_stats(y: list,
 
 
 def plot_variations(y: list,
-                    y_label: str) -> None:
+                    y_label: str,
+                    save: bool = False,
+                    save_prefix: str = SAVE_PREFIX,
+                    save_suffix: str = "") -> None:
     """ 
         Display fluctuations 
     """
@@ -62,14 +66,23 @@ def plot_variations(y: list,
         ylabel=y_label
     )
     plt.legend([ "Running average", "Confidence interval (68%)", "Range of values" ])
-    y_label_clean = y_label.replace(' ', '_')
-    plt.savefig(f'{PLOT_NAME}_{y_label_clean}.png')
     plt.show()
+
+    if save:
+        save_name = y_label.replace(' ', '_').lower()
+        if save_prefix:
+            save_name = f"{save_prefix}_{save_name}"
+        if save_suffix:
+            save_name = f"{save_name}_{save_suffix}"
+        plt.savefig(f"results/{save_name}.png")
 
 
 def plot_avg(agents: List[Agent], 
              extract_fct: Callable, 
              y_label: str,
+             save: bool = False,
+             save_prefix: str = SAVE_PREFIX,
+             save_suffix: str = "",
              **kwargs) -> None:
     """ 
         Display average budget fluctuations over buyers 
@@ -85,15 +98,19 @@ def plot_avg(agents: List[Agent],
     # Compute mean
     history_mean = history_concat.mean(axis=0)
     # Plot mean
-    plot_variations(history_mean, y_label)
+    plot_variations(history_mean, y_label, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
 
 
-def plot_q_table(a: np.array, title: str = "") -> None:
+def plot_q_table(q_table: np.array, 
+                 title: str = "",
+                 save: bool = False,
+                 save_prefix: str = SAVE_PREFIX,
+                 save_suffix: str = "") -> None:
     """ 
         Display heatmap of learnt Q-table 
     """
     fig = sns.heatmap(
-        a, 
+        q_table, 
         cmap='jet_r', 
         cbar=True
     )
@@ -105,20 +122,33 @@ def plot_q_table(a: np.array, title: str = "") -> None:
         **kwargs
     )
     fig.invert_yaxis()
-    plt.savefig(f'{PLOT_NAME}_q_table.png')
     plt.show()
 
+    if save:
+        save_name = "q_table"
+        if save_prefix:
+            save_name = f"{save_prefix}_{save_name}"
+        if save_suffix:
+            save_name = f"{save_name}_{save_suffix}"
+        plt.savefig(f"results/{save_name}.png")
 
-def plot_avg_q_table(agents: List[Agent]) -> None:
+
+def plot_avg_q_table(agents: List[Agent],
+                     save: bool = False,
+                     save_prefix: str = SAVE_PREFIX,
+                     save_suffix: str = "") -> None:
     """ 
         Display heatmap of average learnt Q-table across sellers 
     """
-    plot_q_table(get_avg_q_table(agents))
+    plot_q_table(get_avg_q_table(agents), save=save, save_prefix=save_prefix, save_suffix=save_suffix)
 
 
 
 def plot_curiosity(curiosity_values: List[float], 
-                   epsilon: float = None) -> None:
+                   epsilon: float = None,
+                   save: bool = False,
+                   save_prefix: str = SAVE_PREFIX,
+                   save_suffix: str = "") -> None:
     """ 
         Display evolution of curiosity 
     """
@@ -144,12 +174,22 @@ def plot_curiosity(curiosity_values: List[float],
         xlim=( 0, x_lim ),
         ylim=( 0, 1 )
     )
-    plt.legend(labels=[ "Curiosity", "Epsilon (asymptote)" ])
-    plt.savefig(f'{PLOT_NAME}_curiosity.png')
+    plt.legend(labels=[ "Curiosity", "Epsilon (asymptot)" ])
     plt.show()
 
+    if save:
+        save_name = f"curiosity"
+        if save_prefix:
+            save_name = f"{save_prefix}_{save_name}"
+        if save_suffix:
+            save_name = f"{save_name}_{save_suffix}"
+        plt.savefig(f"results/{save_name}.png")
 
-def plot_avg_curiosity(agents: List[Agent]) -> None:
+
+def plot_avg_curiosity(agents: List[Agent],
+                       save: bool = False,
+                       save_prefix: str = SAVE_PREFIX,
+                       save_suffix: str = "") -> None:
     """ 
         Display evolution of curiosity on average
     """
@@ -174,4 +214,4 @@ def plot_avg_curiosity(agents: List[Agent]) -> None:
     # Compute mean
     curiosity_mean = curiosity_concat.mean(axis=0)
     # Plot mean
-    plot_curiosity(curiosity_mean, epsilon=epsilon)
+    plot_curiosity(curiosity_mean, epsilon=epsilon, save=save, save_prefix=save_prefix, save_suffix=save_suffix)

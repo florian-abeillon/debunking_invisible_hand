@@ -6,12 +6,10 @@
 
 ## General Introduction
 
-(States your motivation clearly: why is it important / interesting to solve this problem?)
-(Add real-world examples, if any)
-(Put the problem into a historical context, from what does it originate? Are there already some proposed solutions?)
-
 Coding project for ETH Zürich's course *[Agent-Based Modeling and Social System Simulation](https://coss.ethz.ch/education/ABM.html)*.  
-The main idea is to simulate independent selling/buying agents, and observe the evolution of price with different parameters -- testing validity of the *Invisible Hand* theory.
+The main idea is to simulate independent selling/buying agents, and observe the evolution of price with different parameters -- testing validity of the *Invisible Hand* theory.  
+
+-> ABSTRACT HERE <-
 
 ## The Model
 
@@ -31,9 +29,15 @@ The main idea is to simulate independent selling/buying agents, and observe the 
 
 ## References 
 
-(Add the bibliographic references you intend to use)
-(Explain possible extension to the above models)
-(Code / Projects Reports of the previous year)
+> Sutton, R., Bach, F., & Barto, A. (2018). Ch. 6 Temporal Difference Learning. MIT Press Ltd.  
+
+> Kvalvaer, M., & Bjerkoy, A. (2019). Replicating financial markets using reinforcement learning; an agent based approach.  
+
+> Huang, C. (2018). Financial trading as a game: A deep reinforcement learning approach. arXiv preprint arXiv:1807.02787.  
+
+> Marco Raberto, Silvano Cincotti, Sergio M. Focardi, & Michele Marchesi (2001). Agent-based simulation of a financial market. Physica A: Statistical Mechanics and its Applications, 299(1), 319-327.  
+
+> LeBaron, B. (2002). Building the Santa Fe artificial stock market. Physica A, 1–20.
 
 
 ## Research Methods
@@ -42,8 +46,3 @@ The main idea is to simulate independent selling/buying agents, and observe the 
 
 ## Acknowledgments
 Thanks to [Thomas Asikis](https://github.com/asikist-ethz) for its guidance throughout the project.
-
-
-## Other
-
-(mention datasets you are going to use)

@@ -12,6 +12,7 @@ from agents.constants import (BANDIT_BREAKPOINT_SELLER,
 from agents.Seller.utils import get_q_table, get_q_table_size
 from display.display_agents import plot_curiosity, plot_q_table
 from display.display_sellers import plot_history, plot_variations_sellers
+from src.constants import SAVE_PREFIX
 
 Q_TABLE = get_q_table(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
 Q_TABLE_SIZE = get_q_table_size(PRICE_MIN, PRICE_MAX, QTY_MIN, QTY_MAX)
@@ -109,11 +110,13 @@ class Seller(Agent):
         """
         plot_variations_sellers(self.get_history(), 'sales')
     
-    def plot_history(self) -> None:
+    def plot_history(self, save: bool = False,
+                           save_prefix: str = SAVE_PREFIX,
+                           save_suffix: str = "") -> None:
         """ 
             Display sales history (quantity sold over price) 
         """
-        plot_history(self.get_history(), price_prod=self.price_prod)
+        plot_history(self.get_history(), price_prod=self.price_prod, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
 
     def plot_curiosity(self) -> None:
         """ 

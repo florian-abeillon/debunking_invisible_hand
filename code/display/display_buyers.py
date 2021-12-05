@@ -9,6 +9,7 @@ from agents.constants import BUDGET, PRICE_MAX, PRICE_MIN
 from agents.utils import get_avg_q_table
 from matplotlib import pyplot as plt
 from matplotlib.widgets import Slider
+from src.constants import SAVE_PREFIX
 
 from display.display_agents import plot_avg, plot_variations
 
@@ -26,7 +27,10 @@ UTILS = {
 
 def plot_variations_buyers(history: List[List[Tuple[int, int, int]]],
                            value: str,
-                           agent: int = None) -> None:
+                           agent: int = None,
+                           save: bool = False,
+                           save_prefix: str = SAVE_PREFIX,
+                           save_suffix: str = "") -> None:
     """
         Display buyers fluctuations
     """
@@ -36,21 +40,24 @@ def plot_variations_buyers(history: List[List[Tuple[int, int, int]]],
         extract_fct(hist_round, agent)
         for hist_round in history 
     ]
-    plot_variations(history, y_label)
+    plot_variations(history, y_label, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
 
 
 def plot_avg_variations_buyers(buyers: list, 
                                value: Union[str, List[str]] = [ 'budget', 'purchases' ],
-                               non_zero: bool = True) -> None:
+                               non_zero: bool = True,
+                               save: bool = False,
+                               save_prefix: str = SAVE_PREFIX,
+                               save_suffix: str = "") -> None:
     """ 
         Display average buyers fluctuations
     """
     if type(value) == list:
         for v in value:
-            plot_avg_variations_buyers(buyers, value=v, non_zero=True)
+            plot_avg_variations_buyers(buyers, value=v, non_zero=True, save=save)
         return
     assert value in [ 'budget', 'purchases' ], f"value={value} should be within [ 'budget', 'purchases' ]"
-    plot_avg(buyers, *UTILS[value], non_zero=non_zero)
+    plot_avg(buyers, *UTILS[value], non_zero=non_zero, save=save, save_prefix=save_prefix, save_suffix=save_suffix)
 
 
 
