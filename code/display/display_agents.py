@@ -1,6 +1,6 @@
 """ display/display_agents """
 
-from typing import Callable, List
+from typing import Callable, List, Tuple
 
 import numpy as np
 import seaborn as sns
@@ -68,7 +68,7 @@ def plot_curiosity(curiosity_values: List[float],
     
     # Display curiosity evolution
     fig = sns.lineplot(
-        x=range(x_lim), 
+        x=range(x_lim),
         y=curiosity_values
     )
     if epsilon is not None:
@@ -96,24 +96,41 @@ def plot_avg_curiosity(agents: List[Agent]) -> None:
     """
     type_agent = agents[0].get_type()
     assert type_agent in [ 'buyer', 'seller' ], f"type_agent={type_agent} should be within [ 'buyer', 'seller' ]"
-    epsilon = CURIOSITY_BUYER if type_agent == 'buyer' else CURIOSITY_SELLER
-
-    kwargs = {}
+    
     if type_agent == 'buyer':
-        # Get average
-        step = int(np.mean([
-            np.mean([ 
-                len(hist_round) for hist_round in buyer.get_history() 
-            ])
+        epsilon = CURIOSITY_BUYER
+        n_min = min([
+            len(buyer.get_curiosity())
             for buyer in agents
-        ]))
-        kwargs['step'] = step
+        ])
+        func = lambda agent: agent.get_curiosity()[:n_min]
+    else:
+        epsilon = CURIOSITY_SELLER
+        func = lambda agent: agent.get_curiosity()
 
     # Concatenate agents' curiosity histories
     curiosity_concat = np.array([
-        agent.get_curiosity(**kwargs) for agent in agents
+        func(agent) for agent in agents
     ])
     # Compute mean
     curiosity_mean = curiosity_concat.mean(axis=0)
     # Plot mean
     plot_curiosity(curiosity_mean, epsilon=epsilon)
+
+
+def running_avg(y: list, 
+                step: int = 100) -> list:
+    x_avg, y_avg = [], []
+    step = int(len(y) / step)
+    idx_start, idx_end = -step // 2, step // 2
+
+    for i in range(0, len(y), step):
+        window = y[max(0, idx_start):idx_end]
+        avg = sum(window) / len(window)
+        x_avg.append(i)
+        y_avg.append(avg)
+
+        idx_start += step
+        idx_end += step
+
+    return x_avg, y_avg

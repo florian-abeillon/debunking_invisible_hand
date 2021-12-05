@@ -100,7 +100,7 @@ class Buyer(Agent):
     def get_curiosity(self, step: int = 0) -> List[float]:
         curiosity_history = super().get_curiosity()
         if not step:
-            step = int(np.mean([ 
+            step = round(np.mean([ 
                 len(hist_round) for hist_round in self.get_history() 
             ]))
         return [
@@ -132,7 +132,7 @@ class Buyer(Agent):
         """ 
             Display curiosity evolution over rounds
         """
-        plot_curiosity(self.curiosity_history, self.epsilon)
+        plot_curiosity(self.get_curiosity(), self.get_history(non_zero=False), self.epsilon)
         
     def plot_sub_q_tables(self) -> None:
         """ 

@@ -11,7 +11,7 @@ from agents.utils import get_avg_q_table
 from matplotlib import pyplot as plt
 from matplotlib.widgets import Slider
 
-from display.display_agents import plot_avg
+from display.display_agents import plot_avg, running_avg
 
 
 def plot_variations(history: List[int], 
@@ -44,17 +44,14 @@ def plot_variations(history: List[int],
         y=y
     )
 
-    x_step = x_lim // 100
+    x_avg, y_avg = running_avg(y)
     # Plot mean of fluctuations (with a 100th window)
     fig_mean = sns.lineplot(
-        x=[ (i + 0.5) * x_step for i in range(100) ],
-        y=[
-            np.mean(history[i * x_step:(i + 1) * x_step])
-            for i in range(100)
-        ]
+        x=x_avg,
+        y=y_avg
     )
 
-    legend_labels = [ "Actual", "Average" ]
+    legend_labels = [ "Actual", "Running average" ]
 
     if value == 'budget':
         fig_baseline = sns.lineplot(

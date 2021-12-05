@@ -7,13 +7,8 @@ import seaborn as sns
 from agents.constants import PRICE_MAX, PRICE_MIN, PRICE_PROD
 from matplotlib import pyplot as plt
 
-from display.display_agents import plot_avg
+from display.display_agents import plot_avg, running_avg
 
-
-def moving_average(a, n=1000) -> np.ndarray:
-    ret = np.cumsum(a, dtype=float)
-    ret[n:] = ret[n:] - ret[:-n]
-    return ret[n - 1:] / n
 
 def plot_history(history: List[Tuple[int, int, List[int]]],
                  price_prod: int = 0) -> None:
@@ -84,9 +79,6 @@ def plot_variations(history: List[Tuple[int, int, List[int]]],
         func = lambda qty_prod, price, sales: price * sum_or_not_sum(sales) - qty_prod * price_prod
         y_label = "Profit"
 
-    if avg:
-        y_label = f"Average {y_label.lower()}"
-
     x_lim = len(history)
     y = [ 
         func(qty_prod, price, sales) 
@@ -98,16 +90,11 @@ def plot_variations(history: List[Tuple[int, int, List[int]]],
         y=y
     )
     
-    x_step = x_lim // 100
+    x_avg, y_avg = running_avg(y)
     # Plot mean of fluctuations (with a 100th window)
     fig_mean = sns.lineplot(
-        # x=[ (i + 0.5) * x_step for i in range(100) ],
-        # y=[
-        #     np.mean(y[i * x_step:(i + 1) * x_step])
-        #     for i in range(100)
-        # ]
-        x=range(moving_average(y).shape[0]),
-        y=moving_average(y)
+        x=x_avg,
+        y=y_avg
     )
 
     y_min, y_max = np.min(y), np.max(y)
@@ -121,7 +108,7 @@ def plot_variations(history: List[Tuple[int, int, List[int]]],
         xlabel="Rounds",
         ylabel=y_label
     )
-    plt.legend(labels=[ "Actual", "Average" ])
+    plt.legend(labels=[ "Actual", "Running average" ])
     plt.show()
     
 

@@ -37,7 +37,7 @@ def play_round(sellers: List[Seller],
     assert nb_to_match != 0, f"nb_to_match={nb_to_match} should be negative (sellers are drawn at random for every buyer) or positive!"
     # If nb_to_match, draw a random nb of sellers for every buyer
     random_draw = nb_to_match < 0
-    # If 0 < nb_to_match < 1, take the proportion of NB_SELLERS
+    # If 0 < nb_to_match < 1, consider it as a proportion of NB_SELLERS
     if 0 < nb_to_match < 1:
         nb_to_match *= NB_SELLERS
     

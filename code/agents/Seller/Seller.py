@@ -113,7 +113,7 @@ class Seller(Agent):
         """ 
             Display curiosity evolution over rounds
         """
-        plot_curiosity(self.curiosity_history, self.epsilon)
+        plot_curiosity(self.curiosity_history, self.history, self.epsilon)
         
     def plot_q_table(self) -> None:
         """ 
