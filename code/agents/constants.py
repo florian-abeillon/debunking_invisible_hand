@@ -24,4 +24,4 @@ BANDIT_STEEPNESS_SELLER = 10
 BANDIT_BREAKPOINT_SELLER = 0.5
 
 # For plotting
-PLOT_NAME = 'low_matching'
+PLOT_NAME = 'baseline'
